@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Labelit — Designer</title>
+<style>
+  :root{
+    --bg:#0b0d10; --panel:#12161c; --panel2:#171c24; --line:#232a35;
+    --text:#e8ecf1; --dim:#8b96a5; --faint:#57616f;
+    --accent:#b8f53d; --accent-dim:#8fca1e; --ink:#0b0d10;
+  }
+  *{margin:0;padding:0;box-sizing:border-box;font-family:"Segoe UI",system-ui,-apple-system,sans-serif}
+  body{background:var(--bg);color:var(--text);height:100vh;display:flex;flex-direction:column;overflow:hidden}
+
+  /* ---------- top bar ---------- */
+  .topbar{height:58px;display:flex;align-items:center;gap:14px;padding:0 18px;background:var(--panel);border-bottom:1px solid var(--line)}
+  .logo{display:flex;align-items:center;gap:10px;font-weight:700;font-size:18px;letter-spacing:-.2px}
+  .logo .mark{width:30px;height:30px;border-radius:8px;background:linear-gradient(135deg,var(--accent),#7bd419);position:relative}
+  .logo .mark::after{content:"";position:absolute;left:6px;top:6px;width:18px;height:10px;background:var(--ink);border-radius:2px 2px 5px 5px;opacity:.9}
+  .logo em{font-style:normal;color:var(--accent)}
+  .crumb{font-size:12.5px;color:var(--dim);background:var(--panel2);border:1px solid var(--line);padding:7px 12px;border-radius:999px;display:flex;gap:8px;align-items:center}
+  .crumb b{color:var(--text);font-weight:600}
+  .crumb .u{color:var(--faint);font-family:ui-monospace,Consolas,monospace;font-size:11.5px}
+  .spacer{flex:1}
+  .tb-btn{height:36px;padding:0 14px;border-radius:9px;border:1px solid var(--line);background:var(--panel2);color:var(--dim);font-size:13px;display:flex;align-items:center;gap:8px}
+  .tb-btn:hover{color:var(--text)}
+  .printer{display:flex;align-items:center;gap:9px;padding:7px 13px;border:1px solid var(--line);background:var(--panel2);border-radius:999px;font-size:12.5px}
+  .dot{width:8px;height:8px;border-radius:50%;background:#3ddc84;box-shadow:0 0 0 4px rgba(61,220,132,.15)}
+  .print-btn{height:40px;padding:0 22px;border:none;border-radius:11px;background:var(--accent);color:var(--ink);font-weight:700;font-size:14px;letter-spacing:.2px;display:flex;align-items:center;gap:9px;box-shadow:0 6px 20px rgba(184,245,61,.22)}
+  .print-btn .kbd{background:rgba(0,0,0,.18);border-radius:5px;font-size:10.5px;padding:2px 6px;font-weight:600;font-family:ui-monospace,monospace}
+
+  /* ---------- main ---------- */
+  .main{flex:1;display:flex;min-height:0}
+
+  /* left rail */
+  .rail{width:66px;background:var(--panel);border-right:1px solid var(--line);display:flex;flex-direction:column;align-items:center;padding:12px 0;gap:4px}
+  .rail .it{width:46px;height:46px;border-radius:12px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;color:var(--faint);font-size:9px;cursor:pointer}
+  .rail .it svg{width:19px;height:19px}
+  .rail .it.on{background:var(--panel2);color:var(--accent);box-shadow:inset 0 0 0 1px var(--line)}
+
+  /* canvas */
+  .canvas{flex:1;position:relative;background:
+      radial-gradient(rgba(255,255,255,.045) 1px, transparent 1px);
+    background-size:22px 22px;display:flex;align-items:center;justify-content:center}
+  .ruler-x{position:absolute;top:0;left:66px;right:0;height:26px;border-bottom:1px solid var(--line);
+    background:repeating-linear-gradient(90deg,var(--faint) 0 1px,transparent 1px 11px);opacity:.5}
+  .ruler-y{position:absolute;top:26px;bottom:0;left:0;width:26px;border-right:1px solid var(--line);
+    background:repeating-linear-gradient(0deg,var(--faint) 0 1px,transparent 1px 11px);opacity:.5}
+  .label-wrap{position:relative;filter:drop-shadow(0 24px 50px rgba(0,0,0,.55))}
+  .label{width:380px;height:570px;background:#fdfdfb;border-radius:6px;padding:26px 28px;color:#111;display:flex;flex-direction:column;position:relative;overflow:hidden}
+  .label .sel{position:absolute;border:1.5px dashed var(--accent-dim);border-radius:4px}
+  .handle{position:absolute;width:9px;height:9px;background:var(--accent);border:2px solid #fff;border-radius:50%;right:-5px;bottom:-5px}
+  .ship-head{display:flex;justify-content:space-between;align-items:center;border-bottom:2.5px solid #111;padding-bottom:10px}
+  .ship-head .pri{font-weight:800;font-size:21px;letter-spacing:1.5px}
+  .ship-head .cls{border:2.5px solid #111;border-radius:6px;padding:3px 9px;font-weight:800;font-size:13px}
+  .to{margin-top:16px}
+  .to small{font-size:10px;letter-spacing:2px;color:#666;font-weight:700}
+  .to .name{font-size:24px;font-weight:800;margin-top:4px}
+  .to .addr{font-size:15.5px;line-height:1.45;color:#222;margin-top:6px}
+  .bc{margin-top:auto;text-align:center}
+  .bc-bars{height:74px;background:repeating-linear-gradient(90deg,#111 0 3px,transparent 3px 5px,#111 5px 9px,transparent 9px 11px,#111 11px 13px,transparent 13px 17px,#111 17px 18px,transparent 18px 21px);margin:0 4px}
+  .bc-num{font-family:ui-monospace,Consolas,monospace;letter-spacing:6px;font-size:13px;margin-top:6px;color:#111}
+  .lfoot{display:flex;justify-content:space-between;align-items:flex-end;margin-top:14px}
+  .lfoot .meta{font-size:10.5px;color:#555;line-height:1.6;font-family:ui-monospace,monospace}
+  .lfoot img{width:74px;height:74px;image-rendering:pixelated;border:1.5px solid #111;border-radius:4px;padding:3px;background:#fff}
+  .zoompill{position:absolute;bottom:18px;left:50%;transform:translateX(-50%);display:flex;align-items:center;gap:10px;background:rgba(18,22,28,.92);border:1px solid var(--line);border-radius:999px;padding:8px 14px;font-size:12.5px;color:var(--dim);backdrop-filter:blur(6px)}
+  .zoompill b{color:var(--text)}
+
+  /* right panel */
+  .props{width:316px;background:var(--panel);border-left:1px solid var(--line);display:flex;flex-direction:column}
+  .props .tabs{display:flex;border-bottom:1px solid var(--line)}
+  .props .tab{flex:1;text-align:center;padding:12px 0;font-size:12.5px;color:var(--faint)}
+  .props .tab.on{color:var(--text);font-weight:600;box-shadow:inset 0 -2px 0 var(--accent)}
+  .props .body{padding:16px;overflow:hidden;display:flex;flex-direction:column;gap:15px}
+  .fld label{display:block;font-size:11px;letter-spacing:.8px;text-transform:uppercase;color:var(--faint);font-weight:700;margin-bottom:6px}
+  .fld .inp{background:var(--panel2);border:1px solid var(--line);border-radius:9px;padding:10px 12px;font-size:13.5px;color:var(--text);display:flex;justify-content:space-between;align-items:center}
+  .fld .inp.var{border-color:rgba(184,245,61,.4)}
+  .fld .var{font-size:11px;color:var(--accent);font-family:ui-monospace,monospace;background:rgba(184,245,61,.1);padding:2px 7px;border-radius:5px}
+  .seg{display:flex;background:var(--panel2);border:1px solid var(--line);border-radius:9px;padding:3px;gap:3px}
+  .seg div{flex:1;text-align:center;padding:7px 0;font-size:12px;border-radius:6px;color:var(--faint)}
+  .seg div.on{background:#242b36;color:var(--text);font-weight:600}
+  .slider{height:4px;background:var(--line);border-radius:2px;position:relative;margin-top:10px}
+  .slider i{position:absolute;left:0;top:0;bottom:0;width:62%;background:var(--accent);border-radius:2px}
+  .slider b{position:absolute;left:62%;top:-6px;width:16px;height:16px;border-radius:50%;background:#fff;box-shadow:0 1px 4px rgba(0,0,0,.5)}
+  .row2{display:flex;gap:10px}.row2>div{flex:1}
+  .chip-row{display:flex;gap:7px;flex-wrap:wrap}
+  .chip{font-size:11.5px;padding:6px 11px;border-radius:999px;border:1px solid var(--line);color:var(--dim);background:var(--panel2)}
+  .chip.on{border-color:var(--accent);color:var(--accent);background:rgba(184,245,61,.08)}
+
+  /* bottom bar */
+  .bottom{height:86px;background:var(--panel);border-top:1px solid var(--line);display:flex;align-items:center;gap:14px;padding:0 18px}
+  .recs{display:flex;gap:9px;flex:1;overflow:hidden}
+  .rec{width:64px;height:52px;border-radius:8px;border:1px solid var(--line);background:var(--panel2);position:relative;overflow:hidden;flex:none}
+  .rec .mini{position:absolute;inset:7px;background:#f4f4f0;border-radius:3px}
+  .rec .mini::after{content:"";position:absolute;left:5px;top:5px;right:14px;height:3px;background:#999;border-radius:2px;box-shadow:0 7px 0 #bbb,0 14px 0 #ccc}
+  .rec.on{border-color:var(--accent);box-shadow:0 0 0 1px var(--accent)}
+  .rec .n{position:absolute;right:5px;bottom:4px;font-size:9.5px;color:var(--faint);font-family:ui-monospace,monospace}
+  .count{font-size:12.5px;color:var(--dim);white-space:nowrap}
+  .count b{color:var(--text)}
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <div class="logo"><div class="mark"></div><span>Label<em>it</em></span></div>
+  <div class="crumb">Shipping · <b>100 × 150 mm</b> <span class="u">4×6″ · 203 dpi</span></div>
+  <div class="crumb"><b>↺</b> <b>↻</b></div>
+  <div class="spacer"></div>
+  <div class="tb-btn">⛶&nbsp; Fit</div>
+  <div class="tb-btn">▦&nbsp; Guides</div>
+  <div class="printer"><span class="dot"></span> Brother QL-810W · ready</div>
+  <button class="print-btn">Print 24 labels <span class="kbd">⌘P</span></button>
+</div>
+
+<div class="main">
+  <div class="rail">
+    <div class="it on"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M3 9h18M9 9v11"/></svg>Layout</div>
+    <div class="it"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 20h16M6 16 16 6l2 2L8 18l-3 1z"/></svg>Text</div>
+    <div class="it"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 5v14M7 5v14M10 5v14M13 5v14M16 5v14M19 5v14" stroke-dasharray="2 1"/></svg>Code</div>
+    <div class="it"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="3" width="8" height="8" rx="1"/><rect x="13" y="13" width="8" height="8" rx="1"/><rect x="13" y="3" width="8" height="8" rx="4"/><rect x="3" y="13" width="8" height="8" rx="4"/></svg>Shapes</div>
+    <div class="it"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="5" width="18" height="14" rx="2"/><circle cx="9" cy="10" r="2"/><path d="m4 18 5-5 3 3 4-4 4 4"/></svg>Image</div>
+    <div class="it"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><ellipse cx="12" cy="6" rx="7" ry="3"/><path d="M5 6v12c0 1.7 3.1 3 7 3s7-1.3 7-3V6M5 12c0 1.7 3.1 3 7 3s7-1.3 7-3"/></svg>Data</div>
+  </div>
+
+  <div class="canvas">
+    <div class="ruler-x"></div><div class="ruler-y"></div>
+    <div class="label-wrap">
+      <div class="label">
+        <div class="sel" style="left:22px;top:78px;width:200px;height:118px"><div class="handle"></div></div>
+        <div class="ship-head"><div class="pri">PRIORITY</div><div class="cls">1ST CLASS</div></div>
+        <div class="to">
+          <small>SHIP TO</small>
+          <div class="name">Amelia Hart</div>
+          <div class="addr">42 Linden Grove, Flat 3<br>Redland, Bristol BS6 6XZ<br>United Kingdom</div>
+        </div>
+        <div class="bc"><div class="bc-bars"></div><div class="bc-num">1Z 8842 90 0377 4126</div></div>
+        <div class="lfoot">
+          <div class="meta">ORDER #1842 · 0.42 kg<br>11 NOV 2026 · labelit.app</div>
+          <img src="qr.png" alt="qr">
+        </div>
+      </div>
+    </div>
+    <div class="zoompill">− <b>96%</b> + &nbsp;·&nbsp; mm ▾</div>
+  </div>
+
+  <div class="props">
+    <div class="tabs"><div class="tab on">Content</div><div class="tab">Style</div><div class="tab">Position</div></div>
+    <div class="body">
+      <div class="fld"><label>Recipient — linked field</label>
+        <div class="inp var">Amelia Hart <span class="var">{{name}}</span></div></div>
+      <div class="fld"><label>Address block</label>
+        <div class="inp var">42 Linden Grove, Flat 3… <span class="var">{{address}}</span></div></div>
+      <div class="fld"><label>Alignment</label>
+        <div class="seg"><div class="on">Left</div><div>Center</div><div>Right</div></div></div>
+      <div class="row2">
+        <div class="fld"><label>Font size</label><div class="inp">24 pt</div><div class="slider"><i></i><b></b></div></div>
+        <div class="fld"><label>Weight</label><div class="seg"><div>Reg</div><div class="on">Bold</div></div></div>
+      </div>
+      <div class="fld"><label>Quick data</label>
+        <div class="chip-row">
+          <span class="chip on">Serial № auto-inc</span><span class="chip">Date</span><span class="chip">QR from URL</span><span class="chip">Weight</span>
+        </div></div>
+    </div>
+  </div>
+</div>
+
+<div class="bottom">
+  <div class="count">Batch — <b>3 / 24</b> records</div>
+  <div class="recs">
+    <div class="rec"><div class="mini"></div><span class="n">01</span></div>
+    <div class="rec"><div class="mini"></div><span class="n">02</span></div>
+    <div class="rec on"><div class="mini"></div><span class="n">03</span></div>
+    <div class="rec"><div class="mini"></div><span class="n">04</span></div>
+    <div class="rec"><div class="mini"></div><span class="n">05</span></div>
+    <div class="rec"><div class="mini"></div><span class="n">06</span></div>
+    <div class="rec"><div class="mini"></div><span class="n">07</span></div>
+  </div>
+  <div class="tb-btn">Import CSV</div>
+  <div class="tb-btn" style="color:var(--accent);border-color:rgba(184,245,61,.35)">Edit data grid</div>
+</div>
+
+</body>
+</html>

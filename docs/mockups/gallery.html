@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Labelit — Label Library</title>
+<style>
+  :root{--bg:#0b0d10;--panel:#12161c;--panel2:#171c24;--line:#232a35;--text:#e8ecf1;--dim:#8b96a5;--faint:#57616f;--accent:#b8f53d;--ink:#0b0d10}
+  *{margin:0;padding:0;box-sizing:border-box;font-family:"Segoe UI",system-ui,-apple-system,sans-serif}
+  body{background:var(--bg);color:var(--text);height:100vh;display:flex;flex-direction:column;overflow:hidden}
+  .topbar{height:58px;display:flex;align-items:center;gap:14px;padding:0 18px;background:var(--panel);border-bottom:1px solid var(--line)}
+  .logo{display:flex;align-items:center;gap:10px;font-weight:700;font-size:18px}
+  .logo .mark{width:30px;height:30px;border-radius:8px;background:linear-gradient(135deg,var(--accent),#7bd419);position:relative}
+  .logo .mark::after{content:"";position:absolute;left:6px;top:6px;width:18px;height:10px;background:var(--ink);border-radius:2px 2px 5px 5px;opacity:.9}
+  .logo em{font-style:normal;color:var(--accent)}
+  .spacer{flex:1}
+  .search{width:340px;background:var(--panel2);border:1px solid var(--line);border-radius:10px;padding:9px 14px;color:var(--faint);font-size:13px;display:flex;gap:9px;align-items:center}
+  .seg{display:flex;background:var(--panel2);border:1px solid var(--line);border-radius:9px;padding:3px;gap:3px}
+  .seg div{padding:5px 12px;font-size:12px;border-radius:6px;color:var(--faint)}
+  .seg div.on{background:#242b36;color:var(--text);font-weight:600}
+
+  .main{flex:1;display:flex;min-height:0}
+  .side{width:210px;background:var(--panel);border-right:1px solid var(--line);padding:16px 12px;display:flex;flex-direction:column;gap:2px}
+  .side h4{font-size:10.5px;letter-spacing:1.2px;text-transform:uppercase;color:var(--faint);margin:12px 8px 6px}
+  .side .it{padding:9px 12px;border-radius:9px;font-size:13px;color:var(--dim);display:flex;justify-content:space-between;align-items:center}
+  .side .it.on{background:var(--panel2);color:var(--text);font-weight:600}
+  .side .it .n{font-size:10.5px;color:var(--faint);background:var(--panel2);border:1px solid var(--line);padding:1px 7px;border-radius:99px}
+  .side .it.on .n{color:var(--accent);border-color:rgba(184,245,61,.3)}
+
+  .grid-area{flex:1;padding:24px 28px;overflow:hidden}
+  .grid-area h2{font-size:19px;font-weight:700;margin-bottom:3px}
+  .grid-area .sub{font-size:13px;color:var(--dim);margin-bottom:20px}
+  .grid{display:grid;grid-template-columns:repeat(4,1fr);gap:16px}
+  .card{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:16px;position:relative;transition:.15s}
+  .card:hover{border-color:#38424f}
+  .card.hot{border-color:rgba(184,245,61,.45)}
+  .tag{position:absolute;top:12px;right:12px;font-size:9.5px;font-weight:700;letter-spacing:.6px;padding:3px 8px;border-radius:99px;background:rgba(184,245,61,.12);color:var(--accent)}
+  .prev{height:86px;display:flex;align-items:center;justify-content:center;margin-bottom:13px}
+  .shape{background:#f4f3ee;border-radius:3px;box-shadow:0 4px 12px rgba(0,0,0,.4)}
+  .shape.round{border-radius:50%}
+  .card h3{font-size:14px;font-weight:650}
+  .card .dims{font-size:11.5px;color:var(--faint);font-family:ui-monospace,monospace;margin-top:3px}
+  .card .use{font-size:11.5px;color:var(--dim);margin-top:7px}
+  .card.custom{border:1.5px dashed #38424f;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;min-height:190px;background:transparent}
+  .card.custom .plus{width:38px;height:38px;border-radius:50%;background:var(--panel2);border:1px solid var(--line);display:flex;align-items:center;justify-content:center;font-size:20px;color:var(--accent);margin-bottom:10px}
+  .card.custom h3{color:var(--text)}
+  .card.custom .use{max-width:170px}
+</style>
+</head>
+<body>
+<div class="topbar">
+  <div class="logo"><div class="mark"></div><span>Label<em>it</em></span></div>
+  <div class="search">⌕&nbsp; Search 300+ label sizes — “shipping”, “avery”, “62mm”…</div>
+  <div class="spacer"></div>
+  <div class="seg"><div class="on">mm</div><div>inch</div></div>
+  <div class="seg"><div class="on">Thermal</div><div>Sheets</div><div>All</div></div>
+</div>
+<div class="main">
+  <div class="side">
+    <h4>Collections</h4>
+    <div class="it on">All labels <span class="n">312</span></div>
+    <div class="it">Recent &amp; pinned <span class="n">6</span></div>
+    <div class="it">My customs <span class="n">4</span></div>
+    <h4>Brands</h4>
+    <div class="it">Brother DK <span class="n">58</span></div>
+    <div class="it">Dymo LabelWriter <span class="n">71</span></div>
+    <div class="it">Zebra / ZPL <span class="n">46</span></div>
+    <div class="it">Avery sheets <span class="n">94</span></div>
+    <div class="it">Rollo / generic <span class="n">43</span></div>
+  </div>
+  <div class="grid-area">
+    <h2>Pick a canvas</h2>
+    <div class="sub">Every standard size out of the box — or define your own down to 0.1&nbsp;mm.</div>
+    <div class="grid">
+      <div class="card hot"><span class="tag">POPULAR</span><div class="prev"><div class="shape" style="width:62px;height:86px"></div></div><h3>Shipping 4×6″</h3><div class="dims">100 × 150 mm · roll</div><div class="use">Parcels, Royal Mail, UPS, e-commerce</div></div>
+      <div class="card"><div class="prev"><div class="shape" style="width:118px;height:47px"></div></div><h3>Address 89 × 36</h3><div class="dims">89 × 36 mm · die-cut</div><div class="use">Brother DK-11201, Dymo 99012</div></div>
+      <div class="card"><div class="prev"><div class="shape" style="width:96px;height:44px"></div></div><h3>Barcode 62 × 29</h3><div class="dims">62 × 29 mm · die-cut</div><div class="use">SKUs, bin labels, DK-11209</div></div>
+      <div class="card"><div class="prev"><div class="shape" style="width:76px;height:66px"></div></div><h3>Name badge 54 × 101</h3><div class="dims">54 × 101 mm · badge</div><div class="use">Events, visitors, DK-11247</div></div>
+      <div class="card"><div class="prev"><div class="shape round" style="width:58px;height:58px"></div></div><h3>Round 51 mm</h3><div class="dims">Ø 51 mm · die-cut</div><div class="use">Jars, candles, product seals</div></div>
+      <div class="card"><div class="prev"><div class="shape" style="width:120px;height:38px"></div></div><h3>File folder 103 × 16</h3><div class="dims">103 × 16 mm · slim</div><div class="use">Spines, cables, DK-11203</div></div>
+      <div class="card"><div class="prev"><div class="shape" style="width:128px;height:34px"></div></div><h3>Continuous 62 mm</h3><div class="dims">62 mm × any length · roll</div><div class="use">Signage, banners — auto-length</div></div>
+      <div class="card custom"><div class="plus">＋</div><h3>Custom size</h3><div class="use">Width, height, gap, shape — saved to your library</div></div>
+    </div>
+  </div>
+</div>
+</body>
+</html>
