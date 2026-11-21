@@ -35,6 +35,8 @@ A full-label gradient on rounded 50 × 30 mm stock shows the stock, printer, and
 
 ## Designed for everyday use
 
+Open several designs in tabs and select **Split view** to see two side by side. Click either pane to activate its design. Each open design keeps its own zoom, canvas position, and undo history during the session. Drag the dotted background to move the label view, or use **Center label** to reset it. [Label-IT 0.1.3 Preview](https://github.com/postmanpat-303/labelit/releases/tag/v0.1.3-preview)
+
 1. **Choose your printer and stock.** First-run setup helps you pick an installed printer. The stock list can filter sizes against known printer limits, and you can enter custom dimensions in millimetres.
 2. **Design right on the label.** Add text, artwork, or a barcode. New text opens the Font and Size controls first. Use the corner handles to resize elements, or right-click to open the PIE menu. When the PIE menu opens a sidebar card, the card briefly highlights.
 3. **Check alignment and print.** Preview the output before using a label. Where direct printing is supported, the calibration controls let you adjust position in 0.1 mm steps and remember the offsets for that printer and stock.
@@ -89,7 +91,7 @@ Choose the package matching your distribution and processor:
 
 | Distribution | Easiest install |
 | --- | --- |
-| Ubuntu | Open the `.deb` in your software installer, or run `sudo apt install ./label-it_0.1.2_amd64.deb` from the download folder. |
+| Ubuntu | Open the `.deb` in your software installer, or run `sudo apt install ./label-it_0.1.3_amd64.deb` from the download folder. |
 | Fedora | Use the x86-64 AppImage for this preview. |
 | Arch and other desktops | Extract the x86-64 archive and run `sh install.sh` inside it as your regular user. The installer adds a launcher for your account. |
 
@@ -121,7 +123,7 @@ The container builds the Debian package and per-user archive. The copy command p
 
 ## Install on macOS
 
-Download **Label-IT-0.1.2-macOS-universal.dmg** from the [0.1.2 preview release](https://github.com/postmanpat-303/labelit/releases/tag/v0.1.2-preview). Open the disk image and drag Label-IT into Applications. The app contains both Apple silicon and Intel binaries.
+Download **Label-IT-0.1.3-macOS-universal.dmg** from the [0.1.3 preview release](https://github.com/postmanpat-303/labelit/releases/tag/v0.1.3-preview). Open the disk image and drag Label-IT into Applications. The app contains both Apple silicon and Intel binaries.
 
 This preview uses ad-hoc signing. It has no Apple Developer ID signature or notarization, so macOS may block it under its security settings. GitHub Actions verified both architectures. A native installation and print test are pending. To print from this preview, export an exact-size PDF and choose **Actual Size** in the macOS print dialog.
 
