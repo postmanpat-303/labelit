@@ -13,6 +13,15 @@ The Linux preview exports exact-size PDFs for printing through the system print 
 
 The [Label-IT and gLabels comparison](https://github.com/postmanpat-303/labelit/blob/main/docs/label-app-bugs.svg) shows examples of the issues and print workflows that informed the early builds.
 
+## Label-IT and gLabels for everyday thermal printing
+
+**gLabels covers 5 of the 10 capabilities on Label-IT’s thermal printing checklist.** We chose these capabilities around the everyday workflow of designing and aligning a label on thermal stock.
+
+- **5 capabilities both apps offer** — place text, add images, create barcodes, print from CSV, and define custom label sizes.
+- **5 Label-IT features we couldn’t confirm in the gLabels documentation** — filter stock by printer, align a test print with a live preview, remember offsets per printer and stock, preview the thermal raster, and access editor tools from the PIE menu.
+
+The 50% figure applies to this checklist. gLabels also supports sheet labels, business cards, and shape tools, and its Qt development version adds continuous-roll support. [gLabels project](https://glabels.org/) · [gLabels Qt project](https://github.com/j-evins/glabels-qt)
+
 ## Install on Windows
 
 Run the **Windows x64 setup executable** on Windows 10 or later. The installer checks for Microsoft Edge WebView2 and adds Label-IT to the Start menu. Select **Run Label-IT now** at the end of setup to open it maximised. The current preview installer is unsigned. Windows 10 is a compatibility target and still needs a clean-install test.
