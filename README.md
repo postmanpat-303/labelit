@@ -4,6 +4,8 @@
 
 [Download Label-IT 0.1.0 Preview](https://github.com/postmanpat-303/labelit/releases/tag/v0.1.0-preview) for Windows or Linux.
 
+[Download the Linux compatibility preview](https://github.com/postmanpat-303/labelit/releases/tag/v0.1.0-linux-compat) for the Debian 12 x86-64 package, AppImage, and per-user archive.
+
 ## What we built in days with AI
 
 gLabels grew out of the GNOME desktop and gave us a model for stock templates and data merge. Label-IT started with a smaller goal: make it easier to design, align, and print a label on a desktop thermal printer. With AI helping write and iterate on the code, a few days took us from a prototype to a public Windows and Linux preview.
