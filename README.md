@@ -4,7 +4,7 @@ Design labels, barcodes, and business cards at actual size on Windows, Linux, an
 
 [![Frontend checks](https://github.com/postmanpat-303/labelit/actions/workflows/frontend-checks.yml/badge.svg?branch=main)](https://github.com/postmanpat-303/labelit/actions/workflows/frontend-checks.yml)
 
-[**Download 0.1.3 Preview**](https://github.com/postmanpat-303/labelit/releases/tag/v0.1.3-preview) · [Screenshots](#screenshots) · [Compare with gLabels](#label-it-vs-glabels) · [Report an issue](https://github.com/postmanpat-303/labelit/issues/new)
+[**Download 0.1.3 Preview**](https://github.com/postmanpat-303/labelit/releases/tag/v0.1.3-preview) · [Screenshots](#screenshots) · [Compare with gLabels](#label-it-vs-glabels) · [Give feedback](https://github.com/postmanpat-303/labelit/discussions/2) · [Report an issue](https://github.com/postmanpat-303/labelit/issues/new)
 
 | Platform | Preview downloads | Setup |
 | --- | --- | --- |
