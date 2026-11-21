@@ -46,7 +46,7 @@ The [Label-IT and gLabels comparison](https://github.com/postmanpat-303/labelit/
 
 ## Label-IT and gLabels feature comparison
 
-On this **14-feature checklist**, the current Label-IT development build covers **14 of 14 (100%)** and gLabels 4 has **9 of 14 documented (64.3%)**. Each row has equal weight. The figures measure coverage of these selected workflows. Label-IT features marked **Local build** are awaiting a public release.
+On this **14-feature checklist**, Label-IT 0.1.2 Preview covers **14 of 14 (100%)** and gLabels 4 has **9 of 14 documented (64.3%)**. Each row has equal weight. The figures measure coverage of these selected workflows.
 
 | Feature | Label-IT | gLabels 4 (Qt development version) |
 | --- | --- | --- |
@@ -55,17 +55,17 @@ On this **14-feature checklist**, the current Label-IT development build covers 
 | Create barcodes | Available | Documented |
 | Print from CSV | Available on supported Windows printer setups | Documented as data merge |
 | Custom label sizes | Available | Documented via templates |
-| Sheet labels | **Local build** · A4 or US Letter PDF with repeated copies | Documented · sheet stock templates |
-| Business cards | **Local build** · two size presets for sheet PDF export | Documented · card stock templates |
-| Shape tools | **Local build** · rectangle, ellipse, and line | Documented |
-| Continuous roll | **Local build** · design height sets print length, driver handles sensing and cutting | Documented |
+| Sheet labels | **0.1.2 Preview** · A4 or US Letter PDF with repeated copies | Documented · sheet stock templates |
+| Business cards | **0.1.2 Preview** · two size presets for sheet PDF export | Documented · card stock templates |
+| Shape tools | **0.1.2 Preview** · rectangle, ellipse, and line | Documented |
+| Continuous roll | **0.1.2 Preview** · design height sets print length, driver handles sensing and cutting | Documented |
 | Filter stock by selected printer | Available | Unconfirmed |
 | Guided alignment with live preview | Available on supported Windows printer setups | Unconfirmed |
 | Save offsets per printer and stock | Available on supported Windows printer setups | Unconfirmed |
 | Thermal raster preview | Available | Unconfirmed |
 | PIE menu for editor actions | Available | Unconfirmed |
 
-gLabels coverage comes from its project documentation. The Label-IT column includes development features verified locally. [gLabels project](https://glabels.org/) · [gLabels 4 project](https://github.com/j-evins/glabels-qt) · [Label-IT releases](https://github.com/postmanpat-303/labelit/releases)
+gLabels coverage comes from its project documentation. The Label-IT column describes the public 0.1.2 preview. [gLabels project](https://glabels.org/) · [gLabels 4 project](https://github.com/j-evins/glabels-qt) · [Label-IT releases](https://github.com/postmanpat-303/labelit/releases)
 
 ### Feature timeline
 
@@ -89,7 +89,7 @@ Choose the package matching your distribution and processor:
 
 | Distribution | Easiest install |
 | --- | --- |
-| Ubuntu | Open the `.deb` in your software installer, or run `sudo apt install ./label-it_0.1.1_amd64.deb` from the download folder. |
+| Ubuntu | Open the `.deb` in your software installer, or run `sudo apt install ./label-it_0.1.2_amd64.deb` from the download folder. |
 | Fedora | Use the x86-64 AppImage for this preview. |
 | Arch and other desktops | Extract the x86-64 archive and run `sh install.sh` inside it as your regular user. The installer adds a launcher for your account. |
 
@@ -121,7 +121,7 @@ The container builds the Debian package and per-user archive. The copy command p
 
 ## Install on macOS
 
-Download **Label-IT-0.1.1-macOS-universal.dmg** from the [0.1.1 preview release](https://github.com/postmanpat-303/labelit/releases/tag/v0.1.1-preview). Open the disk image and drag Label-IT into Applications. The app contains both Apple silicon and Intel binaries.
+Download **Label-IT-0.1.2-macOS-universal.dmg** from the [0.1.2 preview release](https://github.com/postmanpat-303/labelit/releases/tag/v0.1.2-preview). Open the disk image and drag Label-IT into Applications. The app contains both Apple silicon and Intel binaries.
 
 This preview uses ad-hoc signing. It has no Apple Developer ID signature or notarization, so macOS may block it under its security settings. GitHub Actions verified both architectures. A native installation and print test are pending. To print from this preview, export an exact-size PDF and choose **Actual Size** in the macOS print dialog.
 
