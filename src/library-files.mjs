@@ -1,4 +1,4 @@
-import { isBarcodeValue } from "./label.mjs";
+import { isBarcodeValue, shapeNames } from "./label.mjs";
 
 const within = (value, min, max) => Number.isFinite(value) && value >= min && value <= max;
 const fileName = name => name.replace(/[<>:"/\\|?*\u0000-\u001f]/g, "_").trim() || "Label-IT";
@@ -16,12 +16,13 @@ export function readDesignEntry(entry, index = 0) {
   const design = entry?.label;
   if (typeof entry?.name !== "string" || !entry.name.trim() || !within(design?.width, 5, 220)
       || !within(design?.height, 5, 300) || ![203, 300].includes(design?.dpi)
+      || (design.media !== undefined && !["label", "sheet", "continuous"].includes(design.media))
       || (design.cornerRadius !== undefined && !within(design.cornerRadius, 0, 110))
       || !Array.isArray(design?.elements)) {
     throw new Error(`Design ${index + 1} has invalid dimensions or contents.`);
   }
   for (const element of design.elements) {
-    if (!element || ![undefined, "text", "barcode", "image"].includes(element.type)
+    if (!element || ![undefined, "text", "barcode", "image", "shape"].includes(element.type)
         || !Number.isFinite(element.x) || !Number.isFinite(element.y) || !within(element.size, 1, 220)
         || (element.scaleX !== undefined && !(Number.isFinite(element.scaleX) && element.scaleX > 0))
         || (element.wrapWidth !== undefined && !within(element.wrapWidth, 1, 220))
@@ -33,7 +34,10 @@ export function readDesignEntry(entry, index = 0) {
         || typeof element.source !== "string" || !/^data:image\/(?:png|jpeg|webp);base64,/i.test(element.source))) {
       throw new Error(`Design ${index + 1} contains an unsupported image.`);
     }
-    if (element.type !== "image" && (typeof element.text !== "string"
+    if (element.type === "shape" && (!Object.hasOwn(shapeNames, element.shape) || !within(element.height, 0.2, 300))) {
+      throw new Error(`Design ${index + 1} contains an invalid shape.`);
+    }
+    if (!["image", "shape"].includes(element.type) && (typeof element.text !== "string"
         || (element.type === "barcode" && !isBarcodeValue(element.text, element.format)))) {
       throw new Error(`Design ${index + 1} contains invalid text or a barcode.`);
     }

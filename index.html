@@ -45,6 +45,11 @@
     <section class="panel-card" data-category="elements" aria-labelledby="create-elements-title">
       <h2 id="create-elements-title">Elements</h2>
 <div class="actions"><button id="add" type="button">Add text</button><button id="add-image" type="button">Add image</button><button id="add-barcode" type="button">Add barcode</button><button id="remove" type="button">Delete</button></div>
+<div class="actions">
+  <button type="button" data-add-shape="rectangle">Rectangle</button>
+  <button type="button" data-add-shape="ellipse">Ellipse</button>
+  <button type="button" data-add-shape="line">Line</button>
+</div>
 <input id="image-file" type="file" accept="image/png,image/jpeg,image/webp" hidden>
 <label>Element <select id="elements"></select></label>
       <div class="actions edit-history"><button id="undo" type="button">Undo</button><button id="redo" type="button">Redo</button></div>
@@ -92,6 +97,7 @@
   <option value="monospace">Monospace</option>
 </select></label>
 <label><span id="size-name">Font size (mm)</span><input id="size" type="number" min="1" max="40" step="0.1"></label>
+<label id="shape-height-field" hidden>Height (mm) <input id="shape-height" type="number" min="0.2" max="300" step="0.1"></label>
 </div>
 <button id="lock-element" type="button" aria-pressed="false">Lock element</button>
 <div id="editable-properties">
@@ -141,8 +147,16 @@
     </section>
     <section class="panel-card" data-category="stock" aria-labelledby="stock-title">
       <h2 id="stock-title">Label stock</h2>
+      <label>Media <select id="media-mode">
+        <option value="label">Individual labels</option>
+        <option value="sheet">Label or card sheet</option>
+        <option value="continuous">Continuous roll</option>
+      </select></label>
+      <p id="roll-help" class="setting-note" hidden>Set the roll width and enter the desired print length in Height. Select continuous media in the printer driver.</p>
       <label>Size <select id="preset">
         <option value="custom">Custom</option>
+        <option value="85,55">Business card · 85 × 55 mm</option>
+        <option value="88.9,50.8">Business card · 3.5 × 2 in</option>
         <optgroup label="AliExpress" data-website="aliexpress">
           <option value="30,20">30 × 20 mm</option>
           <option value="30,30" data-radius="15">Ø30 mm · Round</option>
@@ -194,6 +208,18 @@
 </div>
 <label>Design resolution <select id="dpi"><option value="203">203 dpi</option><option value="300">300 dpi</option></select></label>
 </details>
+      <form id="sheet-layout" class="sub-card" hidden>
+        <label>Paper <select name="paper"><option value="a4">A4</option><option value="letter">US Letter</option></select></label>
+        <div class="dimensions">
+          <label>Side margins (mm) <input name="left" type="number" min="0" max="100" step="0.1" value="10" required></label>
+          <label>Top and bottom margins (mm) <input name="top" type="number" min="0" max="140" step="0.1" value="10" required></label>
+          <label>Horizontal gap (mm) <input name="gapX" type="number" min="0" max="100" step="0.1" value="3" required></label>
+          <label>Vertical gap (mm) <input name="gapY" type="number" min="0" max="100" step="0.1" value="3" required></label>
+        </div>
+        <label>Copies (0 fills the sheet) <input name="copies" type="number" min="0" max="10000" value="0" required></label>
+        <p id="sheet-fit" class="setting-note" aria-live="polite"></p>
+        <button type="submit">Export sheet PDF</button>
+      </form>
     </section>
     <div id="print-options" hidden>
       <details class="panel-card printer-disclosure" id="printer-settings" data-category="printer">

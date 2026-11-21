@@ -5,7 +5,7 @@ import { cornerRadius, finishPrintRaster, insideStock, previewOnStock, printTone
 import { thermalPrinterProfile } from "./thermal-printers.mjs";
 import { readGlabelsDesign } from "./glabels-import.mjs";
 import { barcodeAtResolution, barcodeNames, drawLabel, makePdf, millimetresPerInch, elementBounds, isBarcodeValue,
-  layoutText, normaliseBarcode, textFontFamily } from "./label.mjs";
+  layoutText, normaliseBarcode, shapeNames, sheetLayout, textFontFamily } from "./label.mjs";
 
 const controls = Object.fromEntries(
   ["undo", "redo", "export", "print", "preset", "width", "height", "dpi", "add", "remove",
@@ -16,6 +16,11 @@ const controls = Object.fromEntries(
     "designs-tab", "properties-tab", "designs-panel", "properties-panel", "label-summary", "label-summary-value"]
     .map(id => [id, document.getElementById(id)])
 );
+const mediaMode = document.querySelector("#media-mode");
+const sheetForm = document.querySelector("#sheet-layout");
+const shapeHeight = document.querySelector("#shape-height");
+const paperSizes = { a4: { width: 210, height: 297 }, letter: { width: 215.9, height: 279.4 } };
+
 const storageKey = "labelit-library-v1";
 const legacyKey = "labelit-design-v1";
 const startingLabel = {
@@ -235,7 +240,13 @@ function syncControls() {
   const dimensions = `${label.width},${label.height}`;
   controls.preset.value = Array.from(controls.preset.options).some(option => option.value === dimensions)
     ? dimensions : "custom";
-  const gap = controls.preset.selectedOptions[0].dataset.gap;
+  mediaMode.value = label.media ?? "label";
+  sheetForm.hidden = mediaMode.value !== "sheet";
+  document.querySelector("#roll-help").hidden = mediaMode.value !== "continuous";
+  document.querySelector("#csv-open").hidden = !invoke || mediaMode.value === "sheet";
+  controls.print.textContent = mediaMode.value === "sheet" ? "Export sheet PDF" : "Print";
+  const gap = mediaMode.value === "label" ? controls.preset.selectedOptions[0].dataset.gap : undefined;
+  if (!sheetForm.hidden) updateSheetFit();
   stockGap.hidden = !gap;
   stockGap.textContent = gap ? `Approx. ${gap} mm gap between labels` : "";
   if (invoke) {
@@ -243,7 +254,7 @@ function syncControls() {
     updatePrintTarget();
   }
   controls.elements.replaceChildren(...label.elements.map((element, index) => {
-    const summary = (element.name ?? element.text ?? "Image").trim().split("\n")[0].slice(0, 40);
+    const summary = (element.name ?? element.text ?? shapeNames[element.shape] ?? "Image").trim().split("\n")[0].slice(0, 40);
     const prefix = element.type === "barcode" ? `${barcodeNames[element.format ?? "code39"]} · ` : "";
     return new Option(prefix + (summary || "Empty text"), index);
   }));
@@ -266,14 +277,16 @@ function syncControls() {
   controls.undo.disabled = !past.length;
   controls.redo.disabled = !future.length;
   controls["element-type"].textContent = element?.type === "barcode" ? barcodeNames[element.format ?? "code39"]
-    : element?.type === "image" ? "Image" : "Text properties";
+    : element?.type === "image" ? "Image" : shapeNames[element?.shape] ?? "Text properties";
   document.querySelector("#barcode-format-field").hidden = element?.type !== "barcode";
   document.querySelector("#barcode-format").value = element?.format ?? "code39";
-  controls["content-field"].hidden = element?.type === "image";
+  controls["content-field"].hidden = !isText(element) && element?.type !== "barcode";
+  document.querySelector("#shape-height-field").hidden = element?.type !== "shape";
+  shapeHeight.value = element?.type === "shape" ? element.height : "";
   controls["content-name"].textContent = element?.type === "barcode" ? "Barcode value" : "Content";
   controls["size-name"].textContent = element?.type === "barcode"
     ? (["qrcode", "datamatrix"].includes(element.format) ? "Symbol size (mm)" : "Bar height (mm)")
-    : element?.type === "image" ? "Width (mm)" : "Font size (mm)";
+    : ["image", "shape"].includes(element?.type) ? "Width (mm)" : "Font size (mm)";
   document.querySelector("#image-fit-actions").hidden = element?.type !== "image";
   controls.size.max = maximumSize(element);
   controls.content.value = element?.text ?? "";
@@ -449,7 +462,7 @@ function loadTemplate() {
   const container = libraryControl("template-fields");
   container.replaceChildren();
   templateFields = templateSource.label.elements.flatMap((element, index) => {
-    if (element.type === "image" || element.locked) return [];
+    if ((!isText(element) && element.type !== "barcode") || element.locked) return [];
     const field = document.createElement("label");
     const input = document.createElement(element.type === "barcode" ? "input" : "textarea");
     field.textContent = `${element.type === "barcode" ? "Barcode" : "Text"} ${index + 1}`;
@@ -734,9 +747,11 @@ controls.preset.onchange = () => {
   }
   const [width, height] = controls.preset.value.split(",").map(Number);
   const radius = controls.preset.selectedOptions[0].dataset.radius;
+  const isCard = ["85,55", "88.9,50.8"].includes(controls.preset.value);
   change(() => {
     const wasRound = label.width === label.height && cornerRadius(label) === label.width / 2;
     Object.assign(label, { width, height });
+    if (isCard) Object.assign(label, { media: "sheet", cornerRadius: 0 });
     if (radius !== undefined) label.cornerRadius = Number(radius);
     else if (wasRound) label.cornerRadius = 0;
   });
@@ -775,6 +790,33 @@ controls["add-barcode"].onclick = () => change(() => {
   }) - 1;
   showInspector("properties");
 });
+mediaMode.onchange = () => {
+  change(() => {
+    label.media = mediaMode.value;
+    if (label.media === "continuous") label.cornerRadius = 0;
+  });
+  if (label.media === "continuous") {
+    document.querySelector("#stock-options").open = true;
+    controls.height.focus();
+  }
+};
+shapeHeight.onchange = () => {
+  const height = validNumber(shapeHeight);
+  const element = label.elements[selected];
+  if (height !== undefined && element?.type === "shape" && !element.locked) updateElement(selected, { height });
+  else syncControls();
+};
+for (const button of document.querySelectorAll("[data-add-shape]")) {
+  button.onclick = () => change(() => {
+    const shape = button.dataset.addShape;
+    selected = label.elements.push({
+      type: "shape", shape, x: 1, y: 1,
+      size: Math.min(20, label.width - 2),
+      height: shape === "line" ? 0.3 : Math.min(10, label.height - 2)
+    }) - 1;
+    showInspector("properties");
+  });
+}
 controls["add-image"].onclick = () => controls["image-file"].click();
 controls["image-file"].onchange = async () => {
   const activeDesign = library.active;
@@ -838,7 +880,7 @@ controls.elements.onchange = () => {
 controls.content.oninput = schedulePreview;
 controls.content.onchange = () => {
   const element = label.elements[selected];
-  if (!element || element.type === "image") return;
+  if (!isText(element) && element?.type !== "barcode") return;
   const value = element.type === "barcode" ? normaliseBarcode(controls.content.value, element.format) : controls.content.value;
   if (element.type === "barcode" && !isBarcodeValue(value, element.format)) {
     controls.content.value = element.text;
@@ -1020,7 +1062,7 @@ function navigatePie(page) {
 pieHub.onclick = () => { if (pieParent) navigatePie(pieParent); };
 
 function isText(element) {
-  return element && element.type !== "image" && element.type !== "barcode";
+  return element && (element.type === undefined || element.type === "text");
 }
 
 function copyElement(element) {
@@ -1375,7 +1417,7 @@ function moveSelection(indices, dx, dy) {
     }
   });
 }
-const maximumSize = element => element?.type === "image" ? 220 : 40;
+const maximumSize = element => ["image", "shape"].includes(element?.type) ? 220 : 40;
 const scaledSize = (element, factor) => roundPosition(Math.max(1, Math.min(maximumSize(element), element.size * factor)));
 
 function handleAt(point, element, context) {
@@ -1397,7 +1439,14 @@ function resizeFromCorner(point, proportional) {
   const context = canvas.getContext("2d");
   const linearBarcode = origin.type === "barcode" && !["qrcode", "datamatrix"].includes(origin.format);
   let properties;
-  if (proportional || (origin.type === "barcode" && !linearBarcode)) {
+  if (origin.type === "shape") {
+    const factor = proportional ? 1 + (widthChange * bounds.width + heightChange * bounds.height)
+      / (bounds.width ** 2 + bounds.height ** 2) : undefined;
+    properties = {
+      size: roundPosition(Math.max(1, Math.min(220, proportional ? bounds.width * factor : bounds.width + widthChange))),
+      height: roundPosition(Math.max(0.2, Math.min(300, proportional ? bounds.height * factor : bounds.height + heightChange)))
+    };
+  } else if (proportional || (origin.type === "barcode" && !linearBarcode)) {
     const distance = widthChange * bounds.width + heightChange * bounds.height;
     const diagonalSquared = bounds.width ** 2 + bounds.height ** 2;
     const factor = 1 + distance / diagonalSquared;
@@ -1634,7 +1683,7 @@ function printOffsets(design, feed, sideways) {
 }
 
 function usesFullSizeZebra(design, name, tone) {
-  return tone === "thermal" && name.toLowerCase() === "zdesigner zd410-203dpi zpl"
+  return design.media !== "continuous" && tone === "thermal" && name.toLowerCase() === "zdesigner zd410-203dpi zpl"
     && design.width === 50 && design.height === 30 && design.dpi === 203;
 }
 
@@ -1731,12 +1780,42 @@ async function renderOutput(design, offset, validate = true) {
   return canvas;
 }
 
+function sheetSettings(design) {
+  const values = new FormData(sheetForm);
+  const paper = paperSizes[values.get("paper")];
+  const [left, top, gapX, gapY, copies] = ["left", "top", "gapX", "gapY", "copies"]
+    .map(name => Number(values.get(name)));
+  return { ...paper, positions: sheetLayout(design, paper, left, top, gapX, gapY, copies) };
+}
+
+function updateSheetFit() {
+  const message = document.querySelector("#sheet-fit");
+  const button = sheetForm.querySelector("button");
+  try {
+    if (!sheetForm.checkValidity()) throw new Error("Enter valid margins, gaps, and copy count.");
+    const count = sheetSettings(currentDesign()).positions.length;
+    message.textContent = `${count} per sheet at actual size.`;
+    button.disabled = false;
+  } catch (error) {
+    message.textContent = error.message;
+    button.disabled = true;
+  }
+}
+
+sheetForm.oninput = updateSheetFit;
+sheetForm.onsubmit = event => {
+  event.preventDefault();
+  exportPdf();
+};
+
 async function exportPdf() {
   if (controls.export.disabled) return;
   finishInlineText(true);
   controls.export.disabled = true;
   try {
     const design = structuredClone(currentDesign());
+    if (design.media === "sheet" && !sheetForm.reportValidity()) return;
+    const sheet = design.media === "sheet" ? sheetSettings(design) : undefined;
     const canvas = await renderOutput(design);
     const { width, height } = canvas;
     const { data } = finishPrintRaster(canvas, design, { x: 0, y: 0 }, "driver");
@@ -1747,10 +1826,10 @@ async function exportPdf() {
     }
     const stream = new Blob([grayscale]).stream().pipeThrough(new CompressionStream("deflate"));
     const compressed = new Uint8Array(await new Response(stream).arrayBuffer());
-    const url = URL.createObjectURL(makePdf(compressed, width, height, design.width, design.height));
+    const url = URL.createObjectURL(makePdf(compressed, width, height, design.width, design.height, sheet));
     const link = document.createElement("a");
     link.href = url;
-    link.download = "label.pdf";
+    link.download = sheet ? "label-sheet.pdf" : "label.pdf";
     link.click();
     setTimeout(() => URL.revokeObjectURL(url), 1000);
     controls.status.textContent = "PDF exported.";
@@ -1839,7 +1918,12 @@ const calibrationGuideStatus = document.querySelector("#calibration-guide-status
 const calibrationForm = document.querySelector("#calibration-measurements");
 const calibrationStatus = document.querySelector("#calibration-status");
 const offsetControls = [feedOffset, sidewaysOffset];
-const stockKey = () => JSON.stringify([printer.value, label.width, label.height]);
+function stockDimensions(design) {
+  const dimensions = [design.width, design.height];
+  if (design.media === "continuous") dimensions.push("continuous");
+  return dimensions;
+}
+const stockKey = () => JSON.stringify([printer.value, ...stockDimensions(label)]);
 const profileKey = () => `labelit-stock-offsets:${stockKey()}`;
 let loadedStock;
 let calibrationSample;
@@ -1887,11 +1971,12 @@ function refreshPrintSetups() {
   const setups = Object.keys(localStorage).flatMap(key => {
     if (!key.startsWith(prefix)) return [];
     try {
-      const [name, width, height] = JSON.parse(key.slice(prefix.length));
+      const [name, width, height, media] = JSON.parse(key.slice(prefix.length));
       if (!installedPrinters.has(name) || !name || !Number.isFinite(width) || !Number.isFinite(height)
           || width < 5 || width > 220 || height < 5 || height > 300) return [];
       const stock = Array.from(controls.preset.options).find(option => option.value === `${width},${height}`);
-      return [new Option(`${stock?.textContent ?? `${width} × ${height} mm`} · ${name}`, key)];
+      const stockName = stock?.textContent ?? `${width} × ${height} mm`;
+      return [new Option(`${media === "continuous" ? `Continuous · ${width} × ${height} mm` : stockName} · ${name}`, key)];
     } catch {
       return [];
     }
@@ -2040,21 +2125,21 @@ cancelPrintJob.onclick = async () => {
   }
 };
 function readStockProfile(name, design) {
-  const key = JSON.stringify([name, design.width, design.height]);
+  const key = JSON.stringify([name, ...stockDimensions(design)]);
   const profile = JSON.parse(localStorage.getItem(`labelit-stock-offsets:${key}`) ?? "{}") ?? {};
   const preset = Array.from(controls.preset.options).find(option => option.value === `${design.width},${design.height}`);
   const printerProfile = thermalPrinterProfile(name);
   const settings = { dpi: profile.dpi ?? (printerProfile ? String(printerProfile.dpi) : preset?.dataset.printDpi ?? ""),
     tone: ["auto", "thermal", "driver"].includes(profile.tone) ? profile.tone : "auto", radius: profile.radius };
   for (const input of offsetControls) {
-    const previous = design.width === 50 && design.height === 30 && name.startsWith("ZDesigner ZD410-")
+    const previous = design.media !== "continuous" && design.width === 50 && design.height === 30 && name.startsWith("ZDesigner ZD410-")
       ? localStorage.getItem(`labelit-${input.id}:${name}`)
       : null;
     settings[input.id] = profile[input.id] ?? previous ?? "0";
   }
   // Earlier versions saved zero for this stock before its print origin was
   // measured. Restore the verified feed correction for those older profiles.
-  const output = { width: design.width, height: design.height, dpi: Number(settings.dpi) || design.dpi };
+  const output = { ...design, dpi: Number(settings.dpi) || design.dpi };
   if (!profile.feedOffsetConfirmed && Number(settings["feed-offset"]) === 0
     && usesFullSizeZebra(output, name, printTone(settings.tone, name))) {
     settings["feed-offset"] = "3.6";
@@ -2109,12 +2194,13 @@ document.querySelector("#print-setup-save").onclick = () => {
 };
 printSetup.onchange = () => {
   if (!printSetup.value) return;
-  const [name, width, height] = JSON.parse(printSetup.value.slice("labelit-stock-offsets:".length));
-  const radius = readStockProfile(name, { width, height }).radius;
+  const [name, width, height, media = "label"] = JSON.parse(printSetup.value.slice("labelit-stock-offsets:".length));
+  const radius = readStockProfile(name, { width, height, media }).radius;
   printer.value = name;
-  if (label.width !== width || label.height !== height || Number.isFinite(radius) && radius !== cornerRadius(label)) {
+  if (label.width !== width || label.height !== height || (label.media ?? "label") !== media
+      || Number.isFinite(radius) && radius !== cornerRadius(label)) {
     change(() => {
-      Object.assign(label, { width, height });
+      Object.assign(label, { width, height, media });
       if (Number.isFinite(radius)) label.cornerRadius = cornerRadius({ width, height, cornerRadius: radius });
     });
   }
@@ -2411,6 +2497,11 @@ function paintPrintPreview(canvas, frame, design) {
 }
 
 async function printLabel(calibration = false) {
+  if (label.media === "sheet") {
+    if (!calibration) return exportPdf();
+    controls.status.textContent = "Export a sheet PDF and print at Actual size to check alignment.";
+    return;
+  }
   if (!invoke || controls.print.disabled) return;
   if (!printer.value) {
     controls.status.textContent = "Select a printer in Label setup.";
@@ -2624,7 +2715,8 @@ document.querySelector("#print-proof-open").onclick = async () => {
       : !validOffsets ? "Check the printer offsets in Label setup."
       : imageWouldClip(context, design, offset, area ?? undefined) ? "An image is cropped in this preview. Use Fit image to print area in Properties to keep it inside."
       : hasPrinter && !zebra && !area ? "The Windows driver’s printable area could not be read. This preview shows the image sent to the driver." : "";
-    proofSend.disabled = !hasPrinter || !validOffsets || clipped || denseBarcode || textOverflow || controls.print.disabled;
+    proofSend.disabled = design.media === "sheet" || !hasPrinter || !validOffsets || clipped
+      || denseBarcode || textOverflow || controls.print.disabled;
   } catch (error) {
     if (proofDialog.open && proofRequest === version) proofStatus.textContent = error.message;
   }

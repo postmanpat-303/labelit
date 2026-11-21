@@ -166,7 +166,7 @@ export function setupCsvPrinting({ getDesign, getPrinters, getPrinter, checkDesi
     fields = [];
     mapping.replaceChildren();
     for (const [index, element] of design.elements.entries()) {
-      if (element.type === "image") continue;
+      if (["image", "shape"].includes(element.type)) continue;
       const field = document.createElement("label");
       const select = document.createElement("select");
       const type = element.type === "barcode" ? "Barcode" : "Text";

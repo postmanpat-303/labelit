@@ -1,6 +1,7 @@
 import bwip from "./vendor/bwip-js-gen.mjs";
 
 export const millimetresPerInch = 25.4;
+export const shapeNames = { rectangle: "Rectangle", ellipse: "Ellipse", line: "Line" };
 
 const alphabet = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ-. $/+%*";
 // Code 39 symbol patterns. Each set bit marks one wide bar or space.
@@ -130,6 +131,7 @@ export function layoutText(context, element) {
 
 export function elementBounds(context, element) {
   const { x, y, size } = element;
+  if (element.type === "shape") return { x, y, width: size, height: element.height };
   if (element.type === "image") return { x, y, width: size, height: size * element.ratio };
   if (element.type === "barcode") {
     const symbol = barcodeSymbol(element.text, element.format);
@@ -146,6 +148,26 @@ export function drawLabel(context, label, width, height, images) {
   context.fillStyle = "#111";
   context.textBaseline = "top";
   for (const element of label.elements) {
+    if (element.type === "shape") {
+      const { x, y, size: w, height: h } = element;
+      const stroke = Math.min(0.35, w / 3, h / 3);
+      const inset = stroke / 2;
+      context.save();
+      context.strokeStyle = "#111";
+      context.lineWidth = stroke;
+      context.beginPath();
+      if (element.shape === "ellipse") {
+        context.ellipse(x + w / 2, y + h / 2, w / 2 - inset, h / 2 - inset, 0, 0, Math.PI * 2);
+      } else if (element.shape === "line") {
+        context.moveTo(x + inset, y + inset);
+        context.lineTo(x + w - inset, y + h - inset);
+      } else {
+        context.rect(x + inset, y + inset, w - stroke, h - stroke);
+      }
+      context.stroke();
+      context.restore();
+      continue;
+    }
     if (element.type === "image") {
       const image = images.get(element.source);
       if (image?.complete && image.naturalWidth) {
@@ -195,7 +217,19 @@ export function drawLabel(context, label, width, height, images) {
   }
 }
 
-export function makePdf(grayscale, pixelWidth, pixelHeight, widthMm, heightMm) {
+export function sheetLayout(label, paper, left, top, gapX, gapY, copies) {
+  const columns = Math.floor((paper.width - 2 * left + gapX + 1e-8) / (label.width + gapX));
+  const rows = Math.floor((paper.height - 2 * top + gapY + 1e-8) / (label.height + gapY));
+  if (columns < 1 || rows < 1) throw new Error("The design does not fit inside the sheet margins.");
+  const capacity = columns * rows;
+  if (copies > capacity) throw new Error(`This layout fits ${capacity} per sheet. Reduce the copies or change the layout.`);
+  return Array.from({ length: copies || capacity }, (_, index) => ({
+    x: left + (index % columns) * (label.width + gapX),
+    y: top + Math.floor(index / columns) * (label.height + gapY)
+  }));
+}
+
+export function makePdf(grayscale, pixelWidth, pixelHeight, widthMm, heightMm, sheet) {
   const encoder = new TextEncoder();
   const parts = [];
   const offsets = [0];
@@ -212,9 +246,13 @@ export function makePdf(grayscale, pixelWidth, pixelHeight, widthMm, heightMm) {
     body.forEach(append);
     append("\nendobj\n");
   }
-  const width = (widthMm * 72 / millimetresPerInch).toFixed(5);
-  const height = (heightMm * 72 / millimetresPerInch).toFixed(5);
-  const commands = `q\n${width} 0 0 ${height} 0 0 cm\n/Label Do\nQ\n`;
+  const points = mm => (mm * 72 / millimetresPerInch).toFixed(5);
+  const width = points(sheet?.width ?? widthMm);
+  const pageHeight = sheet?.height ?? heightMm;
+  const height = points(pageHeight);
+  const positions = sheet?.positions ?? [{ x: 0, y: 0 }];
+  const commands = positions.map(({ x, y }) =>
+    `q\n${points(widthMm)} 0 0 ${points(heightMm)} ${points(x)} ${points(pageHeight - y - heightMm)} cm\n/Label Do\nQ\n`).join("");
   append("%PDF-1.4\n");
   object("<< /Type /Catalog /Pages 2 0 R >>");
   object("<< /Type /Pages /Kids [3 0 R] /Count 1 >>");
