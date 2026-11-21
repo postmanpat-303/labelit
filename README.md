@@ -78,6 +78,8 @@ The [Label-IT and gLabels comparison](https://github.com/postmanpat-303/labelit/
 
 On this **17-feature checklist**, Label-IT 0.1.3 Preview covers **17 of 17 (100%)** and gLabels 4 covers **9 of 17 confirmed features (52.9%)**. Each row has equal weight. The figures measure coverage of these selected workflows.
 
+> **Community feedback.** gLabels has about 25 years of project history. GitHub Discussions is disabled on both its Qt and legacy GTK repositories. Label-IT invites users to share what worked, what got in the way, and what they’d like to see next in its public feedback thread. [gLabels Qt](https://github.com/j-evins/glabels-qt) · [gLabels GTK](https://github.com/j-evins/glabels-gtk) · [Give Label-IT feedback](https://github.com/postmanpat-303/labelit/discussions/2)
+
 | Feature | Label-IT | gLabels 4 (Qt development version) |
 | --- | --- | --- |
 | Place and edit text | Available | Available |
