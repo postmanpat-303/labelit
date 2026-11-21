@@ -66,7 +66,7 @@ The [Label-IT and gLabels comparison](https://github.com/postmanpat-303/labelit/
 
 ## Label-IT and gLabels feature comparison
 
-On this **14-feature checklist**, Label-IT 0.1.2 Preview covers **14 of 14 (100%)** and gLabels 4 has **9 of 14 documented (64.3%)**. Each row has equal weight. The figures measure coverage of these selected workflows.
+On this **17-feature checklist**, Label-IT 0.1.3 Preview covers **17 of 17 (100%)** and gLabels 4 has **9 of 17 documented (52.9%)**. Each row has equal weight. The figures measure coverage of these selected workflows.
 
 | Feature | Label-IT | gLabels 4 (Qt development version) |
 | --- | --- | --- |
@@ -75,17 +75,20 @@ On this **14-feature checklist**, Label-IT 0.1.2 Preview covers **14 of 14 (100%
 | Create barcodes | Available | Documented |
 | Print from CSV | Available on supported Windows printer setups | Documented as data merge |
 | Custom label sizes | Available | Documented via templates |
-| Sheet labels | **0.1.2 Preview** · A4 or US Letter PDF with repeated copies | Documented · sheet stock templates |
-| Business cards | **0.1.2 Preview** · two size presets for sheet PDF export | Documented · card stock templates |
-| Shape tools | **0.1.2 Preview** · rectangle, ellipse, and line | Documented |
-| Continuous roll | **0.1.2 Preview** · design height sets print length, driver handles sensing and cutting | Documented |
+| Sheet labels | Available · A4 or US Letter PDF with repeated copies | Documented · sheet stock templates |
+| Business cards | Available · two size presets for sheet PDF export | Documented · card stock templates |
+| Shape tools | Available · rectangle, ellipse, and line | Documented |
+| Continuous roll | Available · design height sets print length, driver handles sensing and cutting | Documented |
 | Filter stock by selected printer | Available | Unconfirmed |
 | Guided alignment with live preview | Available on supported Windows printer setups | Unconfirmed |
 | Save offsets per printer and stock | Available on supported Windows printer setups | Unconfirmed |
 | Thermal raster preview | Available | Unconfirmed |
 | PIE menu for editor actions | Available | Unconfirmed |
+| Design tabs with independent undo and zoom | Available · 0.1.3 Preview | Unconfirmed |
+| Show two designs side by side | Available · Split view in 0.1.3 Preview | Unconfirmed |
+| Reposition and recenter the label view | Available · drag the background or select Center label | Unconfirmed |
 
-gLabels coverage comes from its project documentation. The Label-IT column describes the public 0.1.2 preview. [gLabels project](https://glabels.org/) · [gLabels 4 project](https://github.com/j-evins/glabels-qt) · [Label-IT releases](https://github.com/postmanpat-303/labelit/releases)
+gLabels coverage comes from its project documentation. The Label-IT column describes the public 0.1.3 preview. Unconfirmed means the feature was not verified in the gLabels documentation reviewed. gLabels 4 also documents user-defined variables and a broader stock template catalogue. [gLabels project](https://glabels.org/) · [gLabels 4 project](https://github.com/j-evins/glabels-qt) · [Label-IT releases](https://github.com/postmanpat-303/labelit/releases)
 
 ### Feature timeline
 
