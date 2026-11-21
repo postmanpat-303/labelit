@@ -4,6 +4,24 @@ Label-IT is a desktop label designer for printing at actual size.
 
 ## Screenshots
 
+### Two designs in Split view
+
+Open several designs in tabs and click either pane to switch which design you’re editing. Each open design keeps its own zoom, position, and undo history during the session. Drag the dotted background to reposition the view, or select **Center label** to reset it.
+
+![Label-IT Split view with a business card on the left and a barcode label on the right](docs/screenshots/split-view.png)
+
+### Business cards and sheet labels
+
+Start with a business-card preset or use your own label dimensions. Set margins and gaps for A4 or US Letter, then export an actual-size sheet PDF. This example fits eight 85 × 55 mm cards on A4.
+
+![Business-card editor and A4 sheet settings showing eight cards per sheet](docs/screenshots/card-sheet.png)
+
+### Shape tools and continuous roll
+
+Add rectangles, ellipses, and lines, then resize them on the canvas or enter dimensions in millimetres. On continuous stock, the design height sets the print length. The printer driver handles media sensing and cutting.
+
+![Continuous-roll label with an ellipse selected, showing shape dimensions and roll settings](docs/screenshots/roll-shapes.png)
+
 **Label editor**
 
 Font and size controls sit at the top of the left panel. Label stock, printer settings, and print actions are on the right.
