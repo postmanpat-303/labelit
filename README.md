@@ -1,5 +1,15 @@
 # Labelit
 
+## Public preview
+
+[Download Label-IT 0.1.0 Preview](https://github.com/postmanpat-303/labelit/releases/tag/v0.1.0-preview) for Windows or Linux. The notes below capture the project's original design direction.
+
+## Bug comparison
+
+![Selected gLabels and Label-IT bug reports and their verification status](docs/label-app-bugs.svg)
+
+Reports: [gLabels file compatibility](https://github.com/j-evins/glabels-qt/issues/239), [gLabels CSV import](https://github.com/j-evins/glabels-qt/issues/217), [gLabels label length](https://github.com/j-evins/glabels-qt/issues/181), and [Label-IT embedded artwork](https://github.com/postmanpat-303/labelit/issues/1).
+
 **A friendly, driver-free label designer for thermal printers.** Every standard size out of the box, any custom size you can measure, and data entry that feels like a spreadsheet — not a config panel.
 
 > Status: design & research phase. See [`docs/RESEARCH.md`](docs/RESEARCH.md) for the open-source landscape and [`docs/IDEAS.md`](docs/IDEAS.md) for the feature brainstorm.
