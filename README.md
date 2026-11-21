@@ -76,31 +76,18 @@ The [Label-IT and gLabels comparison](https://github.com/postmanpat-303/labelit/
 
 ## Label-IT vs. gLabels
 
-On this **17-feature checklist**, Label-IT 0.1.3 Preview covers **17 of 17 (100%)** and gLabels 4 covers **9 of 17 confirmed features (52.9%)**. Each row has equal weight. The figures measure coverage of these selected workflows.
+Both apps support text, images, barcodes, custom sizes, business cards, sheet labels, and continuous rolls. The comparison below covers the public **Label-IT 0.1.3 Preview** and the **gLabels 4 Qt development version**. Feature availability and print workflows vary by platform and printer.
 
-> **Community feedback.** gLabels has about 25 years of project history. GitHub Discussions is disabled on both its Qt and legacy GTK repositories. Label-IT invites users to share what worked, what got in the way, and what they’d like to see next in its public feedback thread. [gLabels Qt](https://github.com/j-evins/glabels-qt) · [gLabels GTK](https://github.com/j-evins/glabels-gtk) · [Give Label-IT feedback](https://github.com/postmanpat-303/labelit/discussions/2)
-
-| Feature | Label-IT | gLabels 4 (Qt development version) |
+| Workflow | Label-IT | gLabels 4 |
 | --- | --- | --- |
-| Place and edit text | Available | Available |
-| Add images | Available | Available |
-| Create barcodes | Available | Available |
-| Print from CSV | Available on supported Windows printer setups | Available as data merge |
-| Custom label sizes | Available | Available via templates |
-| Sheet labels | Available · A4 or US Letter PDF with repeated copies | Available · sheet stock templates |
-| Business cards | Available · two size presets for sheet PDF export | Available · card stock templates |
-| Shape tools | Available · rectangle, ellipse, and line | Available |
-| Continuous roll | Available · design height sets print length, driver handles sensing and cutting | Available |
-| Filter stock by selected printer | Available | Unconfirmed |
-| Guided alignment with live preview | Available on supported Windows printer setups | Unconfirmed |
-| Save offsets per printer and stock | Available on supported Windows printer setups | Unconfirmed |
-| Thermal raster preview | Available | Unconfirmed |
-| PIE menu for editor actions | Available | Unconfirmed |
-| Design tabs with independent undo and zoom | Available · 0.1.3 Preview | Unconfirmed |
-| Show two designs side by side | Available · Split view in 0.1.3 Preview | Unconfirmed |
-| Reposition and recenter the label view | Available · drag the background or select Center label | Unconfirmed |
+| Sheet labels and business cards | Actual-size A4 or US Letter PDF with adjustable margins, gaps, and copies | Built-in stock templates for commercial label and card sheets, plus custom templates |
+| Data-driven labels | CSV field mapping and batch printing on supported Windows printer setups | Document merge from CSV and user-defined variables for numbering and other repeatable values |
+| Continuous-roll stock | Design height sets the print length. The printer driver handles sensing and cutting. | Continuous-roll label support |
+| Thermal printer setup | Printer-aware stock filtering, live calibration preview, saved offsets, and thermal raster preview on supported setups | Equivalent guided calibration features were unconfirmed in the documentation reviewed |
+| Editing several designs | Design tabs, Split view, independent undo and zoom, and canvas panning | Equivalent tabbed and split-view workflows were unconfirmed in the documentation reviewed |
+| Community feedback | Public GitHub Discussions for feedback and workflow questions | GitHub Issues for bugs and feature requests. GitHub Discussions is disabled on the Qt and legacy GTK repositories. |
 
-gLabels coverage comes from its project documentation. The Label-IT column describes the public 0.1.3 preview. Unconfirmed means the feature was not verified in the gLabels documentation reviewed. gLabels 4 also documents user-defined variables and a broader stock template catalogue. [gLabels project](https://glabels.org/) · [gLabels 4 project](https://github.com/j-evins/glabels-qt) · [Label-IT releases](https://github.com/postmanpat-303/labelit/releases)
+For commercial sheet stock and variable-driven labels, gLabels offers a template catalogue and document merge. Label-IT focuses on thermal printer alignment, actual-size PDF export, and editing designs side by side. [gLabels project](https://glabels.org/) · [gLabels 4 project](https://github.com/j-evins/glabels-qt) · [gLabels contribution guide](https://github.com/j-evins/glabels-qt/blob/master/docs/CONTRIBUTING.md) · [Label-IT releases](https://github.com/postmanpat-303/labelit/releases) · [Give Label-IT feedback](https://github.com/postmanpat-303/labelit/discussions/2)
 
 ### Feature timeline
 
