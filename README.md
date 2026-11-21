@@ -4,7 +4,7 @@ Design labels, barcodes, and business cards at actual size on Windows, Linux, an
 
 [![Frontend checks](https://github.com/postmanpat-303/labelit/actions/workflows/frontend-checks.yml/badge.svg?branch=main)](https://github.com/postmanpat-303/labelit/actions/workflows/frontend-checks.yml)
 
-[**Download 0.1.3 Preview**](https://github.com/postmanpat-303/labelit/releases/tag/v0.1.3-preview) · [Screenshots](#screenshots) · [Compare with gLabels](#label-it-and-glabels-feature-comparison) · [Report an issue](https://github.com/postmanpat-303/labelit/issues/new)
+[**Download 0.1.3 Preview**](https://github.com/postmanpat-303/labelit/releases/tag/v0.1.3-preview) · [Screenshots](#screenshots) · [Compare with gLabels](#label-it-vs-glabels) · [Report an issue](https://github.com/postmanpat-303/labelit/issues/new)
 
 | Platform | Preview downloads | Setup |
 | --- | --- | --- |
@@ -74,7 +74,7 @@ The Linux preview exports exact-size PDFs for printing through the system print 
 
 The [Label-IT and gLabels comparison](https://github.com/postmanpat-303/labelit/blob/main/docs/label-app-bugs.svg) shows examples of the issues and print workflows that informed the early builds.
 
-## Label-IT and gLabels feature comparison
+## Label-IT vs. gLabels
 
 On this **17-feature checklist**, Label-IT 0.1.3 Preview covers **17 of 17 (100%)** and gLabels 4 has **9 of 17 documented (52.9%)**. Each row has equal weight. The figures measure coverage of these selected workflows.
 
