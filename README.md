@@ -74,9 +74,11 @@ docker run --rm --mount "type=bind,source=$PWD,target=/output" label-it-bookworm
 
 The container builds the Debian package and per-user archive. The copy command places them in the current directory.
 
-## macOS release status
+## Install on macOS
 
-The planned install is a signed and notarized DMG for Apple silicon and Intel Macs. Open the DMG and drag Label-IT into Applications. A native build, installation check, and PDF print size check on macOS are pending. See [Tauri’s macOS distribution guide](https://v2.tauri.app/distribute/dmg/) and [signing and notarization guide](https://v2.tauri.app/distribute/sign/macos/).
+Download **Label-IT-0.1.1-macOS-universal.dmg** from the [0.1.1 preview release](https://github.com/postmanpat-303/labelit/releases/tag/v0.1.1-preview). Open the disk image and drag Label-IT into Applications. The app contains both Apple silicon and Intel binaries.
+
+This preview uses ad-hoc signing. It has no Apple Developer ID signature or notarization, so macOS may block it under its security settings. GitHub Actions verified both architectures. A native installation and print test are pending. To print from this preview, export an exact-size PDF and choose **Actual Size** in the macOS print dialog.
 
 ## Windows desktop app
 
