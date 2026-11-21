@@ -1,76 +1,158 @@
-# Labelit
+# Label-IT
 
-## Public preview
+Label-IT is a desktop label designer for printing at actual size.
 
-[Download Label-IT 0.1.0 Preview](https://github.com/postmanpat-303/labelit/releases/tag/v0.1.0-preview) for Windows or Linux.
+## Designed for everyday use
 
-[Download the Linux compatibility preview](https://github.com/postmanpat-303/labelit/releases/tag/v0.1.0-linux-compat) for the Debian 12 x86-64 package, AppImage, and per-user archive.
+1. **Choose your printer and stock.** First-run setup helps you pick an installed printer. The stock list can filter sizes against known printer limits, and you can enter custom dimensions in millimetres.
+2. **Design right on the label.** Add text, artwork, or a barcode. New text opens the Font and Size controls first. Use the corner handles to resize elements, or right-click to open the PIE menu. When the PIE menu opens a sidebar card, the card briefly highlights.
+3. **Check alignment and print.** Preview the output before using a label. Where direct printing is supported, the calibration controls let you adjust position in 0.1 mm steps and remember the offsets for that printer and stock.
+4. **Reuse what you’ve made.** Keep designs in the local library, import compatible gLabels designs, or map CSV columns for batches on supported Windows printer setups.
 
-## What we built in days with AI
+The Linux preview exports exact-size PDFs for printing through the system print dialog. See [GitHub Releases](https://github.com/postmanpat-303/labelit/releases) for installers and platform notes.
 
-gLabels grew out of the GNOME desktop and gave us a model for stock templates and data merge. Label-IT started with a smaller goal: make it easier to design, align, and print a label on a desktop thermal printer. With AI helping write and iterate on the code, a few days took us from a prototype to a public Windows and Linux preview.
+The [Label-IT and gLabels comparison](https://github.com/postmanpat-303/labelit/blob/main/docs/label-app-bugs.svg) shows examples of the issues and print workflows that informed the early builds.
 
-- **What we shipped.** A millimetre-scale editor, printer-aware stock suggestions, and import for compatible gLabels designs. The Windows preview supports CSV batch printing. Linux users can export exact-size PDFs for printing through their system dialog.
-- **What hands-on testing caught.** On a Zebra ZD410, a 50 × 30 mm photo label clipped at the top and left a blank strip at the bottom. Measuring the actual prints helped us get full-height output and refine the live calibration workflow, which lets users nudge the position by 0.1 mm.
-- **How to help.** Try the preview and share your printer model, label size, and results in [GitHub Issues](https://github.com/postmanpat-303/labelit/issues). The project welcomes feedback. The app source and its licence are still pending publication.
+## Install on Windows
 
-## Bug comparison
+Run the **Windows x64 setup executable** on Windows 10 or later. The installer checks for Microsoft Edge WebView2 and adds Label-IT to the Start menu. Select **Run Label-IT now** at the end of setup to open it maximised. The current preview installer is unsigned. Windows 10 is a compatibility target and still needs a clean-install test.
 
-![Selected gLabels and Label-IT bug reports and their verification status](docs/label-app-bugs.svg)
+## Install on Linux
 
-Reports: [gLabels file compatibility](https://github.com/j-evins/glabels-qt/issues/239), [gLabels CSV import](https://github.com/j-evins/glabels-qt/issues/217), [gLabels label length](https://github.com/j-evins/glabels-qt/issues/181), and [Label-IT embedded artwork](https://github.com/postmanpat-303/labelit/issues/1).
+Choose the package matching your distribution and processor:
 
-## Original design notes
+| Distribution | Easiest install |
+| --- | --- |
+| Ubuntu | Open the `.deb` in your software installer, or run `sudo apt install ./label-it_0.1.1_amd64.deb` from the download folder. |
+| Fedora | Use the x86-64 AppImage for this preview. |
+| Arch and other desktops | Extract the x86-64 archive and run `sh install.sh` inside it as your regular user. The installer adds a launcher for your account. |
 
-The following notes capture the initial research and roadmap.
+The Linux x86-64 build targets Debian 12 and glibc 2.34 or newer. The Debian package requires GTK 3 and WebKitGTK 4.1.
 
-**A friendly, driver-free label designer for thermal printers.** Every standard size out of the box, any custom size you can measure, and data entry that feels like a spreadsheet — not a config panel.
+Find **Label-IT** in the **Office** category or search for it in your app launcher. Use **Help → Desktop shortcuts** to create a desktop shortcut. On GNOME, **Pin to dock** is available when the desktop allows it. On other desktops, right-click the app launcher and use its pin or add-to-panel command.
 
-> Status: design & research phase. See [`docs/RESEARCH.md`](docs/RESEARCH.md) for the open-source landscape and [`docs/IDEAS.md`](docs/IDEAS.md) for the feature brainstorm.
+The Linux desktop build currently supports designing and exporting exact-size PDFs. In the system print dialog, select the matching stock and **Actual size**. Direct Linux printing is still in development.
 
-## Why
+To build packages from source on a Linux host with Node.js, Rust, and the [Tauri Linux prerequisites](https://v2.tauri.app/start/prerequisites/), run:
 
-Printing a label should take ten seconds: pick a size, type, print. Today it means vendor apps (Dymo Connect, P-touch Editor) that are heavy, locked to one brand, and allergic to CSV files. Labelit is the opposite: brand-agnostic, offline-first, and happy to print one label or a thousand.
+```sh
+node build-frontend.mjs
+cargo build --release --locked --manifest-path src-tauri/Cargo.toml --features custom-protocol
+bash packaging/package-linux.sh src-tauri/target/release/labelit
+```
 
-## Design pillars
+Packages are written under `src-tauri/target/linux-packages`. The script always creates the per-user archive, creates a `.deb` when `dpkg-deb` is available, and creates an `.rpm` when `rpmbuild` is available. Build on the oldest release in the distro family you plan to support so the package can use that system’s runtime libraries.
 
-1. **Zero drivers, zero cloud.** Raw USB / Bluetooth / network from the app. No vendor software, no accounts, no telemetry.
-2. **Millimetre-true canvas.** What you see is what prints — real-world units, rulers, snap guides, 203/300 dpi aware.
-3. **Every size + your size.** Built-in library of Brother DK, Dymo LabelWriter, Zebra and Avery geometries, plus a custom-size editor (width, height, gap, shape) saved to your library.
-4. **Data entry for humans.** Single-label quick form, spreadsheet-style batch grid, CSV/XLSX import, clipboard paste, auto-serial numbers, `{{variables}}` that merge into any element.
-5. **Keyboard-first.** Tab through fields, `Cmd+P` prints, everything reachable without a mouse.
+To build the x86-64 Debian 12 compatibility packages in Docker, run:
 
-## Stack (current direction)
+```sh
+docker build --platform linux/amd64 -f packaging/linux-bookworm.Dockerfile -t label-it-bookworm-amd64 .
+docker run --rm --mount "type=bind,source=$PWD,target=/output" label-it-bookworm-amd64 \
+  cp -a /packages/. /output/
+```
 
-- **Shell:** Tauri 2 (Windows / macOS / Linux, tiny footprint)
-- **UI:** React + TypeScript, Konva for the canvas, Zustand for state
-- **Barcodes:** JsBarcode + bwip-js (Code128, EAN-13, QR, DataMatrix…)
-- **Print core (Rust):** raw USB (`rusb`), BLE (`btleplug`), network sockets; emitters for Brother raster, ZPL, TSPL, EPL, ESC/POS
-- **Browser fallback:** the same UI ships as a PWA using WebUSB / WebBluetooth where the platform allows, with PDF export as the universal last resort
+The container builds the Debian package and per-user archive. The copy command places them in the current directory.
 
-## Inspiration
+## macOS release status
 
-Built on the shoulders of the open-source label community — full notes in [`docs/RESEARCH.md`](docs/RESEARCH.md):
+The planned install is a signed and notarized DMG for Apple silicon and Intel Macs. Open the DMG and drag Label-IT into Applications. A native build, installation check, and PDF print size check on macOS are pending. See [Tauri’s macOS distribution guide](https://v2.tauri.app/distribute/dmg/) and [signing and notarization guide](https://v2.tauri.app/distribute/sign/macos/).
 
-| Project | What we take from it |
-|---|---|
-| [niimblue](https://github.com/MultiMote/niimblue) | Proof that a browser app can own a printer end-to-end |
-| [brother_ql](https://github.com/pklaus/brother_ql) + [brother_ql_web](https://github.com/pklaus/brother_ql_web) | Brother QL raster protocol, media detection |
-| [gLabels](https://github.com/j-evins/glabels-qt) | The classic: template library + merge model |
-| [Vue-Print-Designer](https://github.com/0ldFive/Vue-Print-Designer) | Visual designer with variables & templates |
-| [thermoprint](https://github.com/tomLadder/thermoprint) | Konva editor + platform-agnostic TS core |
-| [labelize](https://github.com/GOODBOY008/labelize) / [portakal](https://github.com/productdevbook/portakal) | Multi-language printer command emission |
-| [QZ Tray](https://github.com/qzind/tray) | The bridge pattern we're replacing with direct I/O |
-| [JsBarcode](https://github.com/lindell/JsBarcode) / [bwip-js](https://github.com/metafloor/bwip-js) | Barcode symbologies |
-| [pylabels](https://github.com/bcbnz/pylabels) | Avery sheet geometry for PDF export |
+## Windows desktop app
 
-## Roadmap sketch
+Install the [Tauri Windows prerequisites](https://v2.tauri.app/start/prerequisites/), then run these commands from the project folder:
 
-- **M1 — Designer:** canvas, size library, custom sizes, text/image/barcode elements, undo/redo, PDF export
-- **M2 — Print:** Brother QL + ZPL/TSPL emitters over USB/network, print queue, media detection
-- **M3 — Data:** batch grid, CSV/XLSX import, serials, `{{variables}}`
-- **M4 — Polish:** template gallery, calibration tool, i18n, sheet imposition
+```powershell
+node build-frontend.mjs
+cargo run --locked --manifest-path src-tauri/Cargo.toml --features custom-protocol
+```
 
-## Contributing
+For a release build, use `cargo build --release --locked --manifest-path src-tauri/Cargo.toml --features custom-protocol` after staging the assets. Find the executable at `src-tauri/target/release/labelit.exe`. On the GNU toolchain, keep the generated `WebView2Loader.dll` alongside the executable. Rerun `node build-frontend.mjs` after changing the editor before building again.
 
-Not yet — the repo is in the idea phase. Watch it, or open an issue with a label size or printer you care about.
+To package the Windows x64 GNU release, run `packaging/package-windows.ps1` with NSIS available on your path, or pass `-Makensis` with the path to `makensis.exe`. The installer is written alongside the release executable. It installs for the current user, adds a Start menu shortcut, and leaves saved designs and lists in place when uninstalled. The installer checks for the Microsoft Edge WebView2 Runtime. This local release candidate is unsigned.
+
+The desktop app keeps its design library in its own WebView2 storage. Existing designs in your regular browser are available in that browser.
+
+The left panel contains the element tools, design library, and Properties. The right panel groups output actions, label stock, printer setup, calibration, and print activity into cards.
+
+In **Printer setup**, choose a printer and enter the number of copies. **Print** or **Ctrl+P** sends the active design directly to that printer at the configured label size. The print job contains only the label artwork, with no browser headers or footers.
+
+**Print activity** shows the latest job's Windows queue status. Use **Check queue** to refresh the status, or **Reprint last label job** to send the same artwork, stock size, printer and copy count again. Reprint is available until the app closes. A job that has left the queue may have printed or been removed.
+
+**Cancel job** requests cancellation of the latest Label-IT job still in the Windows queue. Paper already fed by the printer may still print. **Print history** keeps recent jobs across restarts and lets you reprint individual labels and CSV batches up to 16 MB of raster data verbatim. For larger batches, reopen the saved list to recall the last printed range or choose a row to reprint.
+
+For mailing lists or other records, make a design with text or barcode elements, then choose **Print from CSV**. Load a comma-separated UTF-8 file with a header row and match the columns to your design. Preview the data rows and choose the range to print. Label-IT checks the range for invalid barcodes and overflowing mapped text before submitting a single Windows print job with one label per row. The CSV does not change the saved design.
+
+Choose the printer in the CSV dialog. The preview uses that printer’s saved resolution and offsets for the stock and warns if the offsets would clip a barcode or mapped text. The print range starts at row 1 only. Use **Select all rows** to include the whole list. When editing records, you can move between rows and return to your drafts. **Apply record changes** uses the edits for printing, and **Discard row changes** restores the applied values.
+
+Use **Paste spreadsheet rows** to load copied cells directly. **Check range** lists the rows that need attention and lets you jump to each preview. **Print previewed row** prints just that record so you can check a sample or replace one label from a batch.
+
+Choose **New address list** to start with address fields, or edit any list under **Find or edit records**. **Generate serial numbers** prepares sequential records with an optional date column. You can preview, save, export, and print generated rows like imported CSV data.
+
+Use **Save list** to keep an imported list on this device. Choose it later from **Saved list** to reuse the records and the saved column mappings for the active design. **Export CSV** downloads the active list, including its column names.
+
+Label-IT remembers **Print resolution**, **Feed offset**, and **Sideways offset** for each printer and stock size. Under **Calibrate stock**, print one test and compare the frame on the paper with the preview. Use **Move up** or **Move down** to preview a 0.1 mm adjustment relative to the last test. Print again to check the change, then choose **Looks good** to save it. Use **Enter measured gaps** to calculate feed and sideways corrections from all four margins.
+
+Use **Printer and stock setups** to save or switch combinations in one place. **Print preview** shows the output raster with the printer offsets applied. Choose **Actual dots** to inspect it at one display pixel per raster dot.
+
+Set **Corner radius (mm)** in **Label stock** to match rounded stock, or use 0 for square corners. Label-IT masks artwork outside the curve in the print raster and PDF. **Print tone** defaults to black-and-white thermal dots for Zebra queues and driver-managed colour for other printers. Preview, direct print, and CSV jobs share the same raster processing. Physical tone and alignment still depend on printhead settings, stock, and calibration.
+
+Choose **ALIEXPRESS THERMAL 50x30** for the stock tested on the Zebra ZD410. The labels are 50 mm wide by 30 mm along the feed, with an approximately 6 mm gap. The leading edges are about 36 mm apart.
+
+On the tested ZD410 at 203 dpi, a feed offset of +3.6 mm and a sideways offset of +0.65 mm centred the calibration print. Two consecutive calibration labels showed no visible feed drift, and the Code 39 test label scanned successfully as `LT12`.
+
+A two-row CSV batch also printed in order from one Windows queue job on the ZD410. Both Code 39 labels scanned successfully as `LT12` and `LT13`.
+
+On this workspace's existing Rust GNU toolchain, add the local MinGW tools to the current PowerShell session before running Cargo:
+
+```powershell
+$env:Path = "$env:USERPROFILE\tools\w64devkit\w64devkit\bin;$env:Path"
+```
+
+## Browser prototype
+
+From the Label-IT project folder, run `node serve.mjs` with Node.js 24. From any folder on this Windows workspace, use the full path:
+
+```cmd
+node "C:\Users\DMAN\Documents\Codex\labelit\serve.mjs"
+```
+
+Keep that terminal open and visit <http://127.0.0.1:4173> in a current browser. The editor has no package installation step. Add text, choose a preset or enter dimensions in millimetres, and export a PDF at 203 or 300 dpi. The active design is saved locally in the browser.
+
+Use **Add image** for PNG, JPEG, or WebP files up to 10 MB. Adjust the image width in millimetres to resize it proportionally. **Add barcode** creates a Code 39 symbol. Use **Barcode format** in Properties to switch to Code 128, QR Code, or Data Matrix. Label-IT checks that a barcode fits with its quiet zone and flags undersized 2D codes for the selected output resolution. PDF output is grayscale.
+
+For a photo, **Fit image to print area** leaves a safety margin. **Use full printable height** puts the whole photo as high as the label size, aspect ratio, rounded corners, and current printer offsets allow, without cropping or stretching.
+
+In **Properties**, use **Align to label** to place a selected element against an edge or centre it. Label-IT warns when a barcode or its required blank margins extend past the label. For direct printing it also checks whether your printer offsets would clip the barcode.
+
+In the left panel, click a thumbnail under **Designs** to open a saved label. Use **New design** for a blank label, **Duplicate** to start from a copy, or **Design name** to rename it. Changes save automatically in this browser. Switch to **Properties** to edit the selected element.
+
+Use **Find designs** to search by name, text, or barcode value. In the desktop app, **Ctrl+F** opens the search field. Mark the current design as a **Favourite** to keep it at the top, or use **Favourites only** to hide other designs.
+
+**Library tools** lets you organise designs with folders and tags, reuse a design as a template, and move designs to the recoverable trash. **Export design** produces an editable file with its artwork. **Back up library** includes designs, saved CSV lists, column mappings, and printer profiles. Restoring a backup adds its items and retains existing designs, lists, and calibration settings.
+
+Use **File → Import from gLabels** to bring a `.glabels` or `.glabel` file into your design library. Label-IT imports one label from the sheet, with editable text, supported static barcodes, and compatible embedded gLabels 4 images. Review the import notes and print preview for changes to fonts, barcodes, or skipped objects. Reconnect merge fields through **Print from CSV**.
+
+Right-click empty label space for the PIE insert menu. Each slice has a text label, and hovering or focusing it shows the full action in the centre. Right-click an element and choose **Arrange** to align it, change its layer, or lock it. Locked items can still be selected and copied. Use **Arrange → Unlock element** or the Properties panel to edit them again.
+
+Shift-click elements to select several, then use **PIE → Arrange → Group selection** to move and align them together. Use **Ungroup** to edit them separately. The canvas zoom control returns to **Fit label** with one selection, and **Text box** in Properties sets wrapping, a fit height, and the minimum font size.
+
+Press **Delete** to remove the selected element or group and **Ctrl+Z** to undo it. Delete edits characters while a text field has focus.
+
+## Open-source research
+
+| Project | Pattern for Label-IT |
+| --- | --- |
+| [NiimBlue](https://github.com/MultiMote/niimblue) | Keep hardware communication separate from the editor. Its NIIMBOT browser workflow is a reference for a future device adapter. |
+| [gLabels](https://github.com/j-evins/glabels-qt) | Model media geometry and merge fields independently so one design can serve multiple records and sheet layouts. |
+| [brother_ql](https://github.com/pklaus/brother_ql) | Use it as a Brother raster protocol reference when validating an emitter and its supported USB and network paths. |
+| [thermoprint](https://github.com/tomLadder/thermoprint) | Keep rendering reusable outside the UI so device output and other entry points can share the model. |
+
+The first implementation shares one millimetre-based renderer between preview and output. Canvas updates are coalesced to one animation frame, and full-resolution rendering is deferred until export. The PDF embeds a compressed grayscale image and uses a page size calculated directly from the label dimensions.
+
+The desktop shell uses Tauri 2. The editor uses native browser APIs and Node's standard library to stage the frontend. The Rust backend keeps raster validation and batch preparation independent of the Windows printer adapter. The adapter handles printer discovery, queue status, and submitting label pages to Windows. Code 128, QR Code, and Data Matrix use [BWIP-JS 4.11.4](https://github.com/metafloor/bwip-js) bundled locally, with its licences under `src/vendor`.
+
+## Roadmap
+
+- Expand the stock catalogue.
+- **Android app.** Bring the label editor, saved designs, stock profiles, and CSV workflows to Android. Validate media setup, alignment, and barcode scans on supported printers. Start by testing one printer connection on real Android hardware, then expand support based on the results.
+
