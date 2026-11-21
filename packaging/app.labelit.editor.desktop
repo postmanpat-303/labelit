@@ -1,0 +1,11 @@
+[Desktop Entry]
+Type=Application
+Name=Label-IT
+Comment=Design labels, barcodes, and shipping tags
+Exec=/usr/bin/labelit
+Icon=app.labelit.editor
+Terminal=false
+Categories=Office;
+Keywords=Label;Barcode;Thermal;Shipping;
+StartupNotify=true
+StartupWMClass=app.labelit.editor

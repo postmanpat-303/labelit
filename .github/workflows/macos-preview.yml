@@ -1,0 +1,36 @@
+name: Build macOS preview
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  dmg:
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+      - name: Install Rust targets
+        run: |
+          rustup update stable
+          rustup override set stable
+          rustup target add aarch64-apple-darwin x86_64-apple-darwin
+      - name: Generate the macOS icon
+        run: |
+          npx --yes @tauri-apps/cli@2 icon src-tauri/icons/icon.png --output "$RUNNER_TEMP/labelit-icons"
+          cp "$RUNNER_TEMP/labelit-icons/icon.icns" src-tauri/icons/icon.icns
+      - name: Build the universal test DMG
+        env:
+          APPLE_SIGNING_IDENTITY: "-"
+        run: npx --yes @tauri-apps/cli@2 build --target universal-apple-darwin --bundles dmg --ci -- --locked
+      - name: Verify both architectures
+        run: lipo -verify_arch arm64 x86_64 src-tauri/target/universal-apple-darwin/release/bundle/macos/Label-IT.app/Contents/MacOS/labelit
+      - uses: actions/upload-artifact@v4
+        with:
+          name: Label-IT-macOS-universal-test
+          path: src-tauri/target/universal-apple-darwin/release/bundle/dmg/*.dmg
+          if-no-files-found: error

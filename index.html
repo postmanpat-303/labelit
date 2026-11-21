@@ -1,0 +1,525 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Label-IT</title>
+<link rel="stylesheet" href="./style.css">
+<script type="module" src="./src/editor.mjs"></script>
+</head>
+<body>
+<header>
+  <h1>Label-IT</h1>
+  <details id="file-menu" class="header-menu">
+    <summary>File</summary>
+    <div class="file-actions">
+      <button id="new-design" type="button">New design</button>
+      <button id="design-from-template" type="button">Use template</button>
+      <button id="design-import" type="button">Import design</button>
+      <button id="glabels-import" type="button">Import from gLabels</button>
+      <button id="design-share" type="button">Export design</button>
+      <button id="export" type="button">Export PDF</button>
+    </div>
+  </details>
+  <details class="header-menu" id="appearance-menu">
+    <summary>Appearance</summary>
+    <div class="file-actions">
+      <button type="button" data-theme="studio" aria-pressed="false">Studio</button>
+      <button type="button" data-theme="matrix" aria-pressed="false">Matrix</button>
+      <button type="button" data-theme="synthwave" aria-pressed="false">Synthwave</button>
+      <button type="button" data-theme="circuit-board" aria-pressed="false">Circuit Board</button>
+    </div>
+  </details>
+  <details class="header-menu" id="help-menu">
+    <summary>Help</summary>
+    <div class="file-actions">
+      <button type="button" id="open-source-credits">Open-source credits</button>
+      <button type="button" id="linux-shortcuts-open" hidden>Desktop shortcuts</button>
+    </div>
+  </details>
+  <span id="save-indicator" role="status" hidden>Saved</span>
+</header>
+<input id="glabels-import-file" type="file" accept=".glabel,.glabels,.xml,.gz" hidden>
+<main>
+  <aside class="side-panel creation-panel" aria-label="Label creation">
+    <section class="panel-card" data-category="elements" aria-labelledby="create-elements-title">
+      <h2 id="create-elements-title">Elements</h2>
+<div class="actions"><button id="add" type="button">Add text</button><button id="add-image" type="button">Add image</button><button id="add-barcode" type="button">Add barcode</button><button id="remove" type="button">Delete</button></div>
+<input id="image-file" type="file" accept="image/png,image/jpeg,image/webp" hidden>
+<label>Element <select id="elements"></select></label>
+      <div class="actions edit-history"><button id="undo" type="button">Undo</button><button id="redo" type="button">Redo</button></div>
+    </section>
+    <section class="panel-card" data-category="designs" aria-label="Designs and element properties">
+      <div class="inspector-tabs" role="tablist" aria-label="Inspector view">
+<button type="button" id="designs-tab" role="tab" aria-selected="true" aria-controls="designs-panel">Designs</button>
+<button type="button" id="properties-tab" role="tab" aria-selected="false" aria-controls="properties-panel" tabindex="-1">Properties</button>
+</div>
+<p id="design-status" role="status"></p>
+<section id="designs-panel" role="tabpanel" aria-labelledby="designs-tab">
+<label>Design name <input id="design-name" type="text" maxlength="80"></label>
+<div class="actions design-actions"><button id="duplicate-design" type="button">Duplicate</button><button id="design-favourite" type="button" aria-pressed="false">Favourite</button></div>
+<label>Find designs <input id="design-search" type="search" placeholder="Name, text or barcode"></label>
+<label class="design-filter"><input id="design-favourites-only" type="checkbox"> Favourites only</label>
+<details class="library-tools">
+<summary>Library tools</summary>
+<label>Folder <input id="design-folder" type="text" maxlength="60" placeholder="For example, Workshop"></label>
+<label>Tags <input id="design-tags" type="text" maxlength="200" placeholder="Separate tags with commas"></label>
+<label>Show folder <select id="design-folder-filter"><option value="">All folders</option></select></label>
+<label class="design-filter"><input id="design-template" type="checkbox"> Use as a template</label>
+<label class="design-filter"><input id="design-templates-only" type="checkbox"> Templates only</label>
+<div class="actions design-actions">
+<button id="library-backup" type="button">Back up library</button>
+<button id="library-restore" type="button">Restore backup</button>
+<button id="design-trash" type="button">Move to trash</button>
+</div>
+<div id="design-trash-bin" hidden>
+<label>Restore from trash <select id="design-trash-list"></select></label>
+<button id="design-untrash" type="button">Restore design</button>
+</div>
+<input id="design-import-file" type="file" accept=".labelit,.json,application/json" hidden>
+<input id="library-restore-file" type="file" accept=".labelit-backup,.json,application/json" hidden>
+</details>
+<p id="design-empty" class="setting-note" role="status" hidden>No designs match these filters.</p>
+<div id="design-gallery" aria-label="Saved designs"></div>
+</section>
+<section id="properties-panel" role="tabpanel" aria-labelledby="properties-tab" hidden>
+<div id="label-summary"><h2>Label properties</h2><p id="label-summary-value"></p></div>
+<fieldset id="properties"><legend id="element-type">Element properties</legend>
+<div id="element-sizing" class="dimensions">
+<label id="font-field">Font <select id="font-family">
+  <option value="sans-serif">Sans serif</option>
+  <option value="serif">Serif</option>
+  <option value="monospace">Monospace</option>
+</select></label>
+<label><span id="size-name">Font size (mm)</span><input id="size" type="number" min="1" max="40" step="0.1"></label>
+</div>
+<button id="lock-element" type="button" aria-pressed="false">Lock element</button>
+<div id="editable-properties">
+<label id="barcode-format-field" hidden>Barcode format <select id="barcode-format"><option value="code39">Code 39</option><option value="code128">Code 128</option><option value="qrcode">QR Code</option><option value="datamatrix">Data Matrix</option></select></label>
+<label id="content-field"><span id="content-name">Content</span><textarea id="content" rows="3"></textarea></label>
+<div class="dimensions">
+<label>X (mm) <input id="x" type="number" step="0.1"></label>
+<label>Y (mm) <input id="y" type="number" step="0.1"></label>
+</div>
+<div id="image-fit-actions" class="actions" hidden>
+  <button id="fit-print-image" type="button">Fit image to print area</button>
+  <button id="fill-image-height" type="button">Use full printable height</button>
+</div>
+<details id="text-box-settings">
+<summary>Text box</summary>
+<label>Wrap width (mm) <input id="text-wrap" type="number" min="1" max="220" step="0.1" placeholder="No wrapping"></label>
+<label>Fit height (mm) <input id="text-fit" type="number" min="1" max="300" step="0.1" placeholder="No height limit"></label>
+<label>Minimum font size (mm) <input id="text-minimum" type="number" min="1" max="40" step="0.1" placeholder="2 mm"></label>
+</details>
+<fieldset id="align-element">
+<legend>Align to label</legend>
+<div class="alignment-buttons">
+<button type="button" data-axis="x" data-align="0">Left</button>
+<button type="button" data-axis="x" data-align="0.5" aria-label="Centre horizontally">Centre</button>
+<button type="button" data-axis="x" data-align="1">Right</button>
+<button type="button" data-axis="y" data-align="0">Top</button>
+<button type="button" data-axis="y" data-align="0.5" aria-label="Centre vertically">Middle</button>
+<button type="button" data-axis="y" data-align="1">Bottom</button>
+</div>
+</fieldset>
+</div>
+</fieldset>
+</section>
+    </section>
+  </aside>
+  <section class="workspace" aria-label="Label preview"><div id="stage-viewport" class="stage-viewport"><div class="stage" id="stage"><canvas id="preview" tabindex="0" aria-label="Label canvas" aria-describedby="canvas-help"></canvas><span id="label-dimensions"></span></div></div><label class="canvas-zoom">Zoom <select id="canvas-zoom"><option value="1">Fit label</option><option value="1.5">1.5× fit</option><option value="2">2× fit</option><option value="3">3× fit</option></select></label><p id="canvas-help">Double-click to add or edit text. Right-click for the PIE menu. Shift-click to select several elements. Hold Alt while dragging to bypass snapping.</p><p id="barcode-warning" role="status" hidden></p><p id="status" role="status"></p></section>
+  <aside class="side-panel setup-panel" aria-label="Label and printer setup">
+    <section class="panel-card output-card" data-category="output" aria-labelledby="output-title">
+      <h2 id="output-title">Output</h2>
+      <p id="print-target" class="setting-note"></p>
+      <p id="linux-print-note" class="setting-note" hidden>Export a PDF from File, then print it at actual size using your system’s print dialog.</p>
+      <div class="print-row">
+        <label id="print-copies-field" hidden>Copies <input id="print-copies" type="number" min="1" max="999" step="1" value="1" required></label>
+        <button id="print" type="button">Print</button>
+      </div>
+      <div class="output-actions"><button id="print-proof-open" type="button">Print preview</button><button id="csv-open" type="button" hidden>Print from CSV</button></div>
+    </section>
+    <section class="panel-card" data-category="stock" aria-labelledby="stock-title">
+      <h2 id="stock-title">Label stock</h2>
+      <label>Size <select id="preset">
+        <option value="custom">Custom</option>
+        <optgroup label="AliExpress" data-website="aliexpress">
+          <option value="30,20">30 × 20 mm</option>
+          <option value="30,30" data-radius="15">Ø30 mm · Round</option>
+          <option value="38,25">38 × 25 mm</option>
+          <option value="40,20">40 × 20 mm</option>
+          <option value="40,30">40 × 30 mm</option>
+          <option value="40,60">40 × 60 mm</option>
+          <option value="50,25">50 × 25 mm</option>
+          <option value="50,30" data-gap="6" data-print-dpi="203">ALIEXPRESS THERMAL 50x30</option>
+          <option value="50,40">50 × 40 mm</option>
+          <option value="50,50" data-radius="25">Ø50 mm · Round</option>
+          <option value="60,30">60 × 30 mm</option>
+          <option value="60,40">60 × 40 mm</option>
+          <option value="60,60">60 × 60 mm</option>
+          <option value="70,30">70 × 30 mm</option>
+          <option value="70,50">70 × 50 mm</option>
+          <option value="80,60">80 × 60 mm</option>
+          <option value="80,80">80 × 80 mm</option>
+          <option value="100,100">100 × 100 mm</option>
+          <option value="100,150">100 × 150 mm</option>
+          <option value="102,76">102 × 76 mm</option>
+        </optgroup>
+        <optgroup label="NIIMBOT" data-website="niimbot">
+          <option value="30,25" data-media="niimbot-b1">NIIMBOT · 30 × 25 mm</option>
+          <option value="50,70" data-media="niimbot-b1">NIIMBOT · 50 × 70 mm</option>
+        </optgroup>
+        <optgroup label="Other presets" data-website="other">
+          <option value="62,29" data-media="brother-dk">Brother DK-11209 · 62 × 29 mm</option>
+          <option value="62,100" data-media="brother-dk">Brother DK-11202 · 62 × 100 mm</option>
+          <option value="101.6,152.4">Shipping · 4 × 6 in</option>
+        </optgroup>
+      </select></label>
+<p id="stock-gap" class="setting-note" hidden></p>
+<details id="stock-options" class="sub-card">
+<summary>Stock options</summary>
+<label>Purchase website <select id="stock-website">
+  <option value="">All stock</option>
+  <option value="aliexpress">AliExpress</option>
+  <option value="niimbot">NIIMBOT</option>
+  <option value="other">Other presets</option>
+</select></label>
+<label class="stock-filter" id="stock-filter-field" hidden><input id="compatible-stock" type="checkbox" checked> Match selected printer</label>
+<p id="stock-compatibility" class="setting-note" aria-live="polite" hidden></p>
+<p class="setting-note">Width across the roll × length in the feed direction.</p>
+<div class="dimensions">
+<label>Width (mm) <input id="width" type="number" min="5" max="220" step="0.1"></label>
+<label>Height (mm) <input id="height" type="number" min="5" max="300" step="0.1"></label>
+<label>Corner radius (mm) <input id="corner-radius" type="number" min="0" max="15" step="0.1" value="0" title="Use 0 for square corners"></label>
+</div>
+<label>Design resolution <select id="dpi"><option value="203">203 dpi</option><option value="300">300 dpi</option></select></label>
+</details>
+    </section>
+    <div id="print-options" hidden>
+      <details class="panel-card printer-disclosure" id="printer-settings" data-category="printer">
+        <summary>Printer &amp; calibration <span id="printer-settings-target"></span></summary>
+      <section class="panel-card" data-category="printer" aria-labelledby="printer-title">
+        <h2 id="printer-title">Printer setup</h2>
+        <label>Printer <select id="printer"><option value="">Select a printer</option></select></label>
+        <button id="add-label-printer" type="button">Add label printer</button>
+<details id="saved-print-setups">
+<summary>Printer and stock setups</summary>
+<label id="print-setup-field" hidden>Switch setup <select id="print-setup"><option value="">Choose a setup</option></select></label>
+<button id="print-setup-save" type="button">Save current setup</button>
+</details>
+        <label>Print resolution <select id="print-dpi"><option value="">Use design resolution</option><option value="203">203 dpi</option><option value="300">300 dpi</option></select></label>
+        <label>Print tone <select id="print-tone"><option value="auto">Automatic</option><option value="thermal">Thermal black and white</option><option value="driver">Driver-managed colour</option></select></label>
+      </section>
+      <section class="panel-card" data-category="calibration" aria-labelledby="calibration-title">
+        <h2 id="calibration-title">Calibration</h2>
+        <label>Feed offset (mm) <input id="feed-offset" type="number" min="-10" max="10" step="0.1" value="0" required title="Positive values move the artwork toward the bottom of the label"></label>
+<label>Sideways offset (mm) <input id="sideways-offset" type="number" min="-10" max="10" step="0.05" value="0" required title="Positive values move the artwork to the right"></label>
+<details id="calibration">
+<summary>Calibrate stock</summary>
+<section class="sub-card" aria-labelledby="calibration-test-title">
+<h3 id="calibration-test-title">Test label</h3>
+<p class="setting-note">Print one test and hold it with TOP upright.</p>
+<label>Frame inset <select id="calibration-inset">
+  <option value="2">2 mm from the edge</option>
+  <option value="4">4 mm from the edge</option>
+</select></label>
+<p class="setting-note">If an edge line is missing, try the 4 mm inset. The frame adapts to small and rounded labels.</p>
+<button id="print-calibration" type="button" disabled>Print calibration label</button>
+</section>
+<div id="calibration-guide" hidden>
+<section class="sub-card" aria-labelledby="calibration-adjust-title">
+<h3 id="calibration-adjust-title">Adjust position</h3>
+<p class="setting-note">Does the last test look centred?</p>
+<div class="calibration-moves">
+<button id="calibration-left" class="move-sideways" type="button" aria-label="Move left" title="Move left by 0.1 mm">←</button>
+<button id="calibration-up" class="move-feed" type="button" aria-label="Move up" title="Move up by 0.1 mm">↑</button>
+<button id="calibration-down" class="move-feed" type="button" aria-label="Move down" title="Move down by 0.1 mm">↓</button>
+<button id="calibration-right" class="move-sideways" type="button" aria-label="Move right" title="Move right by 0.1 mm">→</button>
+<button id="calibration-keep" type="button">Looks good</button>
+</div>
+<p id="calibration-preview-note" class="setting-note"></p>
+</section>
+<section class="sub-card" aria-labelledby="calibration-preview-title">
+<h3 id="calibration-preview-title">Compare tests</h3>
+<div class="calibration-previews">
+<figure><figcaption>Last test baseline</figcaption><canvas id="calibration-last" aria-label="Reference illustration of the last calibration test"></canvas></figure>
+<figure><figcaption>Next test estimate</figcaption><canvas id="calibration-next" aria-label="Estimated frame movement relative to the last test"></canvas></figure>
+</div>
+<p id="calibration-guide-status" class="setting-note" role="status"></p>
+</section>
+<details class="sub-card">
+<summary>Enter measured gaps</summary>
+<form id="calibration-measurements">
+<p class="setting-note">With TOP upright, measure from each edge of the frame to the edge of the label.</p>
+<div class="calibration-margins">
+<label>Left (mm) <input name="left" type="number" min="0" step="any" required></label>
+<label>Right (mm) <input name="right" type="number" min="0" step="any" required></label>
+<label>Top (mm) <input name="top" type="number" min="0" step="any" required></label>
+<label>Bottom (mm) <input name="bottom" type="number" min="0" step="any" required></label>
+</div>
+<button type="submit">Save calculated offsets</button>
+<p id="calibration-status" class="setting-note" role="status"></p>
+</form>
+</details>
+</div>
+</details>
+      </section>
+      </details>
+      <section class="panel-card" data-category="jobs" aria-labelledby="activity-title">
+        <h2 id="activity-title">Jobs</h2>
+        <button id="history-open" type="button">Print history</button>
+<details id="print-activity" hidden>
+<summary>Print activity</summary>
+<p id="print-queue-status" class="setting-note" role="status"></p>
+<p id="reprint-target" class="setting-note"></p>
+<button id="reprint" type="button" hidden>Reprint last label job</button>
+<button id="refresh-print-status" type="button">Check queue</button>
+<button id="cancel-print-job" type="button" hidden>Cancel job</button>
+</details>
+      </section>
+    </div>
+  </aside>
+</main>
+<dialog id="linux-shortcuts-dialog" aria-labelledby="linux-shortcuts-title">
+  <div class="dialog-header">
+    <h2 id="linux-shortcuts-title">Desktop shortcuts</h2>
+    <form method="dialog"><button type="submit">Close</button></form>
+  </div>
+  <button type="button" id="linux-desktop-shortcut">Create desktop shortcut</button>
+  <button type="button" id="linux-pin-dock" hidden>Pin to dock</button>
+  <p class="setting-note">If your desktop asks, choose Allow Launching or Trust and Launch.</p>
+  <p id="linux-shortcuts-status" class="setting-note" role="status"></p>
+  <details class="welcome-add">
+    <summary>Pin to taskbar or dock</summary>
+    <p class="setting-note">Find Label-IT in your application menu and right-click it. On GNOME, choose Add to Favorites or Pin to Dash. On KDE Plasma, choose Pin to Task Manager. Other desktops may call it Add to Panel.</p>
+  </details>
+</dialog>
+<dialog id="credits-dialog" aria-labelledby="credits-title">
+  <div class="dialog-header">
+    <h2 id="credits-title">Open-source credits</h2>
+    <form method="dialog"><button type="submit">Close</button></form>
+  </div>
+  <p class="credits-intro">Thank you to the maintainers who build and share the tools that help Label-IT design and print labels.</p>
+  <section class="credits-section credits-origin" aria-labelledby="credits-glabels">
+    <h3 id="credits-glabels">A tribute to gLabels, from 2001 to today</h3>
+    <p>Thank you to founder Jaye Evins, credited as Jim Evins in the original project, and to the developers, translators, documentation writers, template contributors, and testers who made gLabels possible. The project’s stock templates and data merge helped inspire Label-IT.</p>
+    <p>Mario Blättermann maintained documentation and internationalization. Austin Henry contributed the Evolution Data Server and vCard backends. Samual Lown and Robin Stuart worked on Zint barcode support.</p>
+    <p><a data-project="glabels-team" href="https://github.com/j-evins/glabels-gtk/blob/master/AUTHORS" target="_blank" rel="noopener noreferrer">GNOME project acknowledgments</a> · <a data-project="glabels-qt-team" href="https://github.com/j-evins/glabels-qt/blob/master/CREDITS.md" target="_blank" rel="noopener noreferrer">Qt project credits</a></p>
+    <figure class="credits-quote">
+      <blockquote>“drop my text and graphical elements as objects onto a prototype label or card and have fine control over their placement.”</blockquote>
+      <figcaption>gLabels founder, describing the editor he wanted to build in a <a data-project="glabels-interview" href="https://sourceforge.net/blog/glabels-lets-you-make-labels-with-style/" target="_blank" rel="noopener noreferrer">2009 SourceForge interview</a>.</figcaption>
+    </figure>
+    <ol class="credits-timeline">
+      <li><time datetime="2001">2001</time><p>gLabels begins as a GNOME tool for laying out labels and business cards.</p></li>
+      <li><time datetime="2009">2009</time><p>The 2.2 series supports CSV data merge and command-line batch printing.</p></li>
+      <li><time datetime="2011-05-16">2011</time><p>gLabels 3 reaches its first stable release after the move to GTK 3 and GNOME 3. <a data-project="glabels-news" href="https://github.com/j-evins/glabels-gtk/blob/master/NEWS" target="_blank" rel="noopener noreferrer">Release history</a></p></li>
+      <li><time datetime="2018">2018</time><p>Upstream maintenance of gLabels 3 ends. Linux distributions continue to package the classic editor.</p></li>
+      <li><strong>Today · gLabels 4 development</strong><p>A Qt 6 rewrite introduces a new layout, cross-platform support, continuous-roll stock, and user-defined variables. <a data-project="glabels" href="https://github.com/j-evins/glabels-qt" target="_blank" rel="noopener noreferrer">gLabels on Qt</a></p></li>
+    </ol>
+    <p>The familiar workflow carries through the project’s history. Choose stock, place text and graphics on a label, and print copies or merge records from a data source.</p>
+    <div class="credits-gallery">
+      <figure><img src="./references/glabels/introduction-glabels-main-window.png" width="790" height="655" alt="The gLabels 3 GNOME editor with a label on the canvas"><figcaption>Classic GNOME editor · gLabels 3</figcaption></figure>
+      <figure><img src="./references/glabels/print-merge.png" width="675" height="393" alt="The gLabels print dialog with merge controls and sheet preview"><figcaption>gLabels 3 merge printing</figcaption></figure>
+    </div>
+    <p class="credits-caption">Images from the gLabels GTK manual, reproduced unmodified under <a data-project="glabels-docs-license" href="https://github.com/j-evins/glabels-gtk/blob/master/COPYING.README_FIRST#documentation" target="_blank" rel="noopener noreferrer">CC BY-SA 3.0</a>.</p>
+  </section>
+  <section class="credits-section credits-origin credits-label-it" aria-labelledby="credits-label-it">
+    <h3 id="credits-label-it">The Label-IT story</h3>
+    <p class="credits-quote"><strong>Our vision</strong><br>Make it easy to go from a blank label to a finished print in minutes on Windows, macOS, and Linux. Pick your printer, see which label sizes fit, design at actual size, and print with a preview you can trust.</p>
+    <ol class="credits-timeline">
+      <li><time datetime="2026-11-18">18 Nov 2026</time><p>The first prototype puts labels on a millimetre-scale canvas for direct printing.</p></li>
+      <li><time datetime="2026-11-20">20 Nov 2026</time><p>A Zebra ZD410 prints a full-height 50 × 30 mm label. The first Linux package brings the editor to Ubuntu.</p></li>
+      <li><strong>November 2026 builds</strong><p>The editor gains a PIE menu, stock and printer matching, live calibration and saved offsets, a design library, CSV batch printing, and gLabels 3 and 4 design import.</p></li>
+    </ol>
+    <div class="credits-gallery">
+      <figure><img src="./references/label-it/thermal-raster-test.png" alt="An early Label-IT build with a full-label grayscale raster test and stock settings"><figcaption>Early full-label thermal raster test</figcaption></figure>
+      <figure><img src="./references/label-it/printer-welcome.png" alt="Label-IT welcome dialog for choosing an installed printer"><figcaption>Printer setup on first launch</figcaption></figure>
+    </div>
+  </section>
+  <section class="credits-section">
+    <h3>Used in Label-IT</h3>
+    <dl>
+      <dt><a data-project="tauri" href="https://github.com/tauri-apps/tauri" target="_blank" rel="noopener noreferrer">Tauri</a></dt>
+      <dd>Desktop app framework.</dd>
+      <dt><a data-project="bwip-js" href="https://github.com/metafloor/bwip-js" target="_blank" rel="noopener noreferrer">bwip-js</a> and <a data-project="bwipp" href="https://github.com/bwipp/postscriptbarcode" target="_blank" rel="noopener noreferrer">BWIPP</a></dt>
+      <dd>Barcode rendering by Mark Warren, Terry Burton, and contributors. The bundled source traces BWIPP to <time datetime="2004">2004</time> and bwip-js to <time datetime="2011">2011</time>. The font code also credits Sean Barrett’s stb_truetype.</dd>
+      <dt><a data-project="inconsolata" href="https://github.com/googlefonts/Inconsolata" target="_blank" rel="noopener noreferrer">Inconsolata</a></dt>
+      <dd>Raph Levien’s monospaced font, dated <time datetime="2006">2006</time> in the upstream credits. Bundled with the barcode library under the SIL Open Font License.</dd>
+      <dt>Rust libraries</dt>
+      <dd><a data-project="tempfile" href="https://github.com/Stebalien/tempfile" target="_blank" rel="noopener noreferrer">tempfile</a> stages print batches. <a data-project="windows-rs" href="https://github.com/microsoft/windows-rs" target="_blank" rel="noopener noreferrer">windows-sys</a> provides the Windows API bindings.</dd>
+    </dl>
+    <p class="credits-licenses"><a href="./src/vendor/BWIP-JS-LICENSE.txt" download>Barcode library licence</a> · <a href="./src/vendor/INCONSOLATA-LICENSE.txt" download>Inconsolata licence</a></p>
+  </section>
+  <section class="credits-section">
+    <h3>Design and printing references</h3>
+    <p><a data-project="thermoprint" href="https://github.com/tomLadder/thermoprint" target="_blank" rel="noopener noreferrer">thermoprint</a> informed the separation of rendering and printing. <a data-project="niimblue" href="https://github.com/MultiMote/niimblue" target="_blank" rel="noopener noreferrer">NiimBlue</a> and <a data-project="brother-ql" href="https://github.com/pklaus/brother_ql" target="_blank" rel="noopener noreferrer">brother_ql</a> provide device-protocol references.</p>
+  </section>
+  <section class="credits-section">
+    <h3>Community printer projects</h3>
+    <p>Explore the projects referenced in <strong>Add label printer</strong>.</p>
+    <ul class="credits-projects">
+      <li><a data-project="openprinting" href="https://openprinting.github.io/cups/drivers.html" target="_blank" rel="noopener noreferrer">OpenPrinting</a></li>
+      <li><a data-project="lprint" href="https://github.com/michaelrsweet/lprint" target="_blank" rel="noopener noreferrer">LPrint</a></li>
+      <li><a data-project="niimgo" href="https://github.com/thedemons/niimgo" target="_blank" rel="noopener noreferrer">niimgo</a></li>
+      <li><a data-project="niimprintx" href="https://github.com/niimbot/niimprintx" target="_blank" rel="noopener noreferrer">NiimPrintX</a></li>
+      <li><a data-project="phomemo-tools" href="https://github.com/vivier/phomemo-tools" target="_blank" rel="noopener noreferrer">phomemo-tools</a></li>
+      <li><a data-project="phomymo" href="https://github.com/transcriptionstream/phomymo" target="_blank" rel="noopener noreferrer">Phomymo</a></li>
+    </ul>
+  </section>
+  <p id="credits-status" class="setting-note" role="status"></p>
+</dialog>
+<dialog id="printer-welcome" aria-labelledby="printer-welcome-title">
+  <form id="printer-welcome-form">
+    <div class="welcome-banner">
+      <div class="welcome-mark" aria-hidden="true"><span></span><span></span><span></span><span></span><span></span></div>
+      <div>
+        <p class="welcome-brand">Label-IT</p>
+        <h2 id="printer-welcome-title">Welcome to Label-IT</h2>
+        <p>From tiny tags to shipping labels, design and print at the size your printer supports.</p>
+      </div>
+    </div>
+    <fieldset class="welcome-printers">
+      <legend>Which printer do you use for labels?</legend>
+      <div id="welcome-printer-list" class="welcome-printer-list"></div>
+    </fieldset>
+    <p id="welcome-printer-status" class="setting-note" role="status"></p>
+    <details class="welcome-add" id="welcome-add">
+      <summary>Printer missing or using Bluetooth?</summary>
+      <p class="setting-note">Pair it in Windows, install its printer driver if needed, then refresh the list. You can also do this later under Add label printer.</p>
+      <div class="welcome-links">
+        <button type="button" id="welcome-bluetooth">Bluetooth settings</button>
+        <button type="button" id="welcome-windows-printers">Printers &amp; scanners</button>
+        <button type="button" id="welcome-refresh">Refresh list</button>
+      </div>
+    </details>
+    <details class="welcome-add" id="open-driver-guide">
+      <summary>Find an open-source driver</summary>
+      <label>Printer model <select id="open-driver-model">
+        <option value="openprinting">Other printer / check driverless support</option>
+        <option value="niimgo">NIIMBOT B1</option>
+        <option value="niimprintx">NIIMBOT B21</option>
+        <option value="lprint">Zebra ZPL / EPL</option>
+        <option value="phomemo-tools">Phomemo M110 / M220</option>
+        <option value="phomymo">Phomemo PM-241BT</option>
+      </select></label>
+      <p id="open-driver-note" class="setting-note"></p>
+      <button type="button" id="open-driver-project">Open project documentation</button>
+      <p id="open-driver-status" class="setting-note" role="status"></p>
+    </details>
+    <div class="welcome-footer">
+      <button type="button" id="welcome-later">Set up later</button>
+      <button type="submit" id="welcome-use-printer" disabled>Use this printer</button>
+    </div>
+  </form>
+</dialog>
+<dialog id="history-dialog" aria-labelledby="history-title">
+<div class="dialog-header"><h2 id="history-title">Print history</h2><button id="history-close" type="button">Close</button></div>
+<p id="history-status" role="status"></p>
+<div id="history-jobs"></div>
+</dialog>
+<dialog id="template-dialog" aria-labelledby="template-title">
+  <div class="dialog-header"><h2 id="template-title">Use template</h2><button id="template-close" type="button">Close</button></div>
+  <form id="template-form">
+    <label>Template <select id="template-choice"></select></label>
+    <label>New design name <input id="template-name" maxlength="80" required></label>
+    <div id="template-fields"></div>
+    <button type="submit">Create from template</button>
+    <p id="template-status" class="setting-note" role="status"></p>
+  </form>
+</dialog>
+<dialog id="print-proof-dialog" aria-labelledby="print-proof-title">
+  <div class="dialog-header"><h2 id="print-proof-title">Print preview</h2><button id="print-proof-close" type="button">Close</button></div>
+  <p id="print-proof-summary" class="setting-note"></p>
+  <div id="print-proof-frame"><canvas id="print-proof-canvas" aria-label="Label print preview"></canvas></div>
+  <div class="actions">
+    <button id="print-proof-zoom" type="button" aria-pressed="false">Actual dots</button>
+    <button id="print-proof-send" type="button" hidden>Print label</button>
+  </div>
+  <p id="print-proof-status" class="setting-note" role="status"></p>
+</dialog>
+<dialog id="csv-dialog" aria-labelledby="csv-title">
+  <div class="dialog-header"><h2 id="csv-title">Print from CSV</h2><button id="csv-close" type="button">Close</button></div>
+  <label>Printer for this batch <select id="csv-printer"><option value="">Select a printer</option></select></label>
+  <label id="csv-saved-field" hidden>Saved list <select id="csv-saved"><option value="">Choose a list</option></select></label>
+  <label>CSV file <input id="csv-file" type="file" accept=".csv,text/csv"></label>
+  <p class="setting-note">Use a file with column names in its first row.</p>
+  <button id="csv-new-addresses" type="button">New address list</button>
+  <details id="csv-paste-panel">
+    <summary>Paste spreadsheet rows</summary>
+    <label>Paste cells, including the header row <textarea id="csv-paste" rows="3"></textarea></label>
+    <button id="csv-load-paste" type="button">Use pasted rows</button>
+  </details>
+  <details id="csv-serial-panel">
+    <summary>Generate serial numbers</summary>
+    <form id="csv-serial-form">
+      <label>Prefix <input id="csv-serial-prefix" type="text" maxlength="40"></label>
+      <div class="dimensions">
+        <label>Start at <input id="csv-serial-start" type="number" min="0" max="999999999" step="1" value="1" required></label>
+        <label>Labels <input id="csv-serial-count" type="number" min="1" max="10000" step="1" value="10" required></label>
+        <label>Digits <input id="csv-serial-digits" type="number" min="1" max="12" step="1" value="3" required></label>
+      </div>
+      <label>Date column <select id="csv-serial-date"><option value="">None</option><option value="iso">Year-month-day</option><option value="local">Day/month/year</option></select></label>
+      <button id="csv-generate-serials" type="submit">Generate rows</button>
+    </form>
+  </details>
+  <div id="csv-setup" hidden>
+    <div class="csv-list-tools">
+      <label>List name <input id="csv-list-name" type="text" maxlength="80"></label>
+      <div class="actions">
+        <button id="csv-save-list" type="button">Save list</button>
+        <button id="csv-export-list" type="button">Export CSV</button>
+        <button id="csv-remove-list" type="button" hidden>Remove saved list</button>
+      </div>
+      <p id="csv-list-status" class="setting-note" role="status"></p>
+    </div>
+    <div class="csv-layout">
+      <section aria-labelledby="csv-map-title">
+        <h3 id="csv-map-title">Match columns to label elements</h3>
+        <div id="csv-mapping"></div>
+      </section>
+      <section aria-labelledby="csv-preview-title">
+        <h3 id="csv-preview-title">Preview</h3>
+        <div class="csv-preview"><canvas id="csv-preview" aria-label="Merged label preview"></canvas></div>
+        <label id="csv-row-label">Preview row <input id="csv-row" type="number" min="1" step="1" value="1" required></label>
+        <div class="actions"><button id="csv-previous" type="button">Previous row</button><button id="csv-next" type="button">Next row</button></div>
+        <button id="csv-proof" type="button" disabled>Print previewed row</button>
+      </section>
+    </div>
+    <details id="csv-records">
+      <summary>Find or edit records</summary>
+      <label>Find a record <input id="csv-find-record" type="search" placeholder="Name, address or other value"></label>
+      <div class="actions"><button id="csv-find-next" type="button">Find next</button><button id="csv-add-record" type="button">Add record</button></div>
+      <div id="csv-record-fields"></div>
+      <div class="actions"><button id="csv-apply-record" type="button">Apply record changes</button><button id="csv-discard-record" type="button" hidden>Discard row changes</button></div>
+      <p id="csv-drafts" class="setting-note" role="status" hidden></p>
+    </details>
+    <form id="csv-print-form">
+      <div class="dimensions">
+        <label>From row <input id="csv-from" type="number" min="1" step="1" value="1" required></label>
+        <label>Through row <input id="csv-through" type="number" min="1" step="1" value="1" required></label>
+      </div>
+      <p id="csv-target" class="setting-note"></p>
+      <button id="csv-send" type="submit" disabled>Print rows</button>
+      <button id="csv-check" type="button">Check range</button>
+      <button id="csv-all-rows" type="button">Select all rows</button>
+      <button id="csv-start-at-preview" type="button">Start at previewed row</button>
+      <button id="csv-last-range" type="button" hidden>Recall last printed range</button>
+    </form>
+    <ol id="csv-issues" class="csv-issues" hidden aria-label="Rows to fix"></ol>
+  </div>
+  <p id="csv-status" role="status"></p>
+</dialog>
+<template id="canvas-tools">
+  <textarea class="inline-text" aria-label="Edit label text" placeholder="Type here" spellcheck="false" hidden></textarea>
+  <div class="pie-menu" role="menu" aria-label="Element actions" aria-hidden="true" inert>
+    <button type="button" role="menuitem" data-action="edit"><span class="pie-content"><span class="pie-icon" aria-hidden="true">✎</span><span class="pie-label">Edit text</span></span></button>
+    <button type="button" role="menuitem" data-action="copy"><span class="pie-content"><span class="pie-icon" aria-hidden="true">⧉</span><span class="pie-label">Copy</span></span></button>
+    <button type="button" role="menuitem" data-action="paste"><span class="pie-content"><span class="pie-icon" aria-hidden="true">▣</span><span class="pie-label">Paste</span></span></button>
+    <button type="button" role="menuitem" data-action="delete"><span class="pie-content"><span class="pie-icon" aria-hidden="true">×</span><span class="pie-label">Delete</span></span></button>
+    <button type="button" role="menuitem" data-action="front"><span class="pie-content"><span class="pie-icon" aria-hidden="true">↑</span><span class="pie-label">To front</span></span></button>
+    <button type="button" role="menuitem" data-action="duplicate"><span class="pie-content"><span class="pie-icon" aria-hidden="true">＋</span><span class="pie-label">Duplicate</span></span></button>
+    <button type="button" class="pie-hub" role="menuitem" aria-label="Back" disabled>Actions</button>
+  </div>
+</template>
+</body>
+</html>
