@@ -2,13 +2,25 @@
 
 ## Public preview
 
-[Download Label-IT 0.1.0 Preview](https://github.com/postmanpat-303/labelit/releases/tag/v0.1.0-preview) for Windows or Linux. The notes below capture the project's original design direction.
+[Download Label-IT 0.1.0 Preview](https://github.com/postmanpat-303/labelit/releases/tag/v0.1.0-preview) for Windows or Linux.
+
+## What we built in days with AI
+
+gLabels grew out of the GNOME desktop and gave us a model for stock templates and data merge. Label-IT started with a smaller goal: make it easier to design, align, and print a label on a desktop thermal printer. With AI helping write and iterate on the code, a few days took us from a prototype to a public Windows and Linux preview.
+
+- **What we shipped.** A millimetre-scale editor, printer-aware stock suggestions, and import for compatible gLabels designs. The Windows preview supports CSV batch printing. Linux users can export exact-size PDFs for printing through their system dialog.
+- **What hands-on testing caught.** On a Zebra ZD410, a 50 × 30 mm photo label clipped at the top and left a blank strip at the bottom. Measuring the actual prints helped us get full-height output and refine the live calibration workflow, which lets users nudge the position by 0.1 mm.
+- **How to help.** Try the preview and share your printer model, label size, and results in [GitHub Issues](https://github.com/postmanpat-303/labelit/issues). The project welcomes feedback. The app source and its licence are still pending publication.
 
 ## Bug comparison
 
 ![Selected gLabels and Label-IT bug reports and their verification status](docs/label-app-bugs.svg)
 
 Reports: [gLabels file compatibility](https://github.com/j-evins/glabels-qt/issues/239), [gLabels CSV import](https://github.com/j-evins/glabels-qt/issues/217), [gLabels label length](https://github.com/j-evins/glabels-qt/issues/181), and [Label-IT embedded artwork](https://github.com/postmanpat-303/labelit/issues/1).
+
+## Original design notes
+
+The following notes capture the initial research and roadmap.
 
 **A friendly, driver-free label designer for thermal printers.** Every standard size out of the box, any custom size you can measure, and data entry that feels like a spreadsheet — not a config panel.
 
