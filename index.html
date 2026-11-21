@@ -133,7 +133,28 @@
 </section>
     </section>
   </aside>
-  <section class="workspace" aria-label="Label preview"><div id="stage-viewport" class="stage-viewport"><div class="stage" id="stage"><canvas id="preview" tabindex="0" aria-label="Label canvas" aria-describedby="canvas-help"></canvas><span id="label-dimensions"></span></div></div><label class="canvas-zoom">Zoom <select id="canvas-zoom"><option value="1">Fit label</option><option value="1.5">1.5× fit</option><option value="2">2× fit</option><option value="3">3× fit</option></select></label><p id="canvas-help">Double-click to add or edit text. Right-click for the PIE menu. Shift-click to select several elements. Hold Alt while dragging to bypass snapping.</p><p id="barcode-warning" role="status" hidden></p><p id="status" role="status"></p></section>
+  <section class="workspace" aria-label="Label preview">
+    <nav id="open-designs" aria-label="Open designs"></nav>
+    <div id="workspace-panes">
+      <div id="stage-viewport" class="stage-viewport">
+        <div class="stage" id="stage"><canvas id="preview" tabindex="0" aria-label="Label canvas" aria-describedby="canvas-help"></canvas><span id="label-dimensions"></span></div>
+      </div>
+      <button id="split-preview" type="button" hidden>
+        <span id="split-name"></span>
+        <canvas id="split-canvas" aria-hidden="true"></canvas>
+      </button>
+    </div>
+    <div class="canvas-toolbar">
+      <label class="canvas-zoom">Zoom <select id="canvas-zoom"><option value="0.75">75% of fit</option><option value="1">Fit label</option><option value="1.5">1.5× fit</option><option value="2">2× fit</option><option value="3">3× fit</option></select></label>
+      <button id="center-label" type="button">Center label</button>
+      <button id="split-view" type="button" aria-pressed="false" disabled>Split view</button>
+    </div>
+    <div class="canvas-messages">
+      <p id="canvas-help">Drag the dotted background to move the label view. Right-click for the PIE menu. Shift-click to multi-select. Hold Alt to bypass snapping.</p>
+      <p id="barcode-warning" role="status" hidden></p>
+      <p id="status" role="status"></p>
+    </div>
+  </section>
   <aside class="side-panel setup-panel" aria-label="Label and printer setup">
     <section class="panel-card output-card" data-category="output" aria-labelledby="output-title">
       <h2 id="output-title">Output</h2>

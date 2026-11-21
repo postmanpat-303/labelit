@@ -77,8 +77,18 @@ try {
 let label = library.designs[library.active].label;
 let selected = label.elements.length ? 0 : -1;
 const multiSelection = new Set();
-const past = [];
-const future = [];
+let past = [];
+let future = [];
+let pan = { x: 0, y: 0 };
+const openDesigns = new Map([[library.active, {}]]);
+const openDesignBar = document.querySelector("#open-designs");
+const splitView = document.querySelector("#split-view");
+const splitPreview = document.querySelector("#split-preview");
+const splitCanvas = document.querySelector("#split-canvas");
+const workspacePanes = document.querySelector("#workspace-panes");
+const splitImages = new Map();
+let splitDesign;
+let activeOnRight = false;
 let frame;
 let drag;
 let inlineEdit;
@@ -120,6 +130,7 @@ function loadImages(design, cache = images, onLoad = schedulePreview) {
 }
 
 function drawPreview() {
+  drawSplitPreview();
   let design = currentDesign();
   const dimensions = `${design.width} × ${design.height} mm`;
   if (controls["label-dimensions"].textContent !== dimensions) {
@@ -139,6 +150,11 @@ function drawPreview() {
   const preview = controls.preview;
   preview.style.width = `${width}px`;
   preview.style.height = `${height}px`;
+  const limitX = Math.max(0, (controls.stage.clientWidth - width) / 2 - 24);
+  const limitY = Math.max(0, (controls.stage.clientHeight - height - 26) / 2 - 24);
+  const panX = Math.max(-limitX, Math.min(limitX, pan.x));
+  const panY = Math.max(-limitY, Math.min(limitY, pan.y));
+  preview.style.translate = `${panX}px ${panY}px`;
   preview.style.borderRadius = `${cornerRadius(design) * width / design.width}px / ${cornerRadius(design) * height / design.height}px`;
   const pixelWidth = Math.round(width * devicePixelRatio);
   const pixelHeight = Math.round(height * devicePixelRatio);
@@ -371,7 +387,7 @@ function createGalleryCard(entry, index) {
     thumbnail.style.height = `${height}px`;
     thumbnail.width = width * 2;
     thumbnail.height = height * 2;
-    const current = index === library.active ? " · Open" : "";
+    const current = openDesigns.has(index) ? " · Open" : "";
     dimensions.textContent = `${design.width} × ${design.height} mm${current}`;
     const assets = loadImages(design, cache, update);
     drawLabel(thumbnail.getContext("2d"), design, thumbnail.width, thumbnail.height, assets);
@@ -385,6 +401,7 @@ function createGalleryCard(entry, index) {
 }
 
 function syncLibraryControls() {
+  renderOpenDesigns();
   const active = library.designs[library.active];
   controls["design-name"].value = active.name;
   libraryControl("design-folder").value = active.folder ?? "";
@@ -410,6 +427,101 @@ function syncLibraryControls() {
   });
   controls["design-gallery"].replaceChildren(...cards);
   filterDesignGallery();
+}
+
+function renderOpenDesigns() {
+  if (!openDesigns.has(splitDesign)) splitDesign = undefined;
+  splitView.disabled = openDesigns.size < 2;
+  splitView.setAttribute("aria-pressed", String(splitDesign !== undefined));
+  splitPreview.hidden = splitDesign === undefined;
+  workspacePanes.toggleAttribute("data-active-right", splitDesign !== undefined && activeOnRight);
+  if (splitDesign !== undefined) {
+    const name = library.designs[splitDesign].name;
+    document.querySelector("#split-name").textContent = name;
+    splitPreview.setAttribute("aria-label", `Edit ${name}`);
+  } else {
+    splitImages.clear();
+  }
+  schedulePreview();
+  const previousScroll = openDesignBar.scrollLeft;
+  const tabs = [...openDesigns.keys()].map(index => {
+    const entry = library.designs[index];
+    const tab = document.createElement("div");
+    tab.className = "open-design";
+    const select = document.createElement("button");
+    select.type = "button";
+    select.className = "open-design-name";
+    select.textContent = entry.name;
+    select.title = entry.name;
+    if (index === library.active) select.setAttribute("aria-current", "true");
+    select.onclick = () => {
+      if (index !== library.active) openDesign(index);
+      openDesignBar.querySelector('[aria-current="true"]')?.focus({ preventScroll: true });
+    };
+    tab.append(select);
+    if (openDesigns.size > 1) {
+      const close = document.createElement("button");
+      close.type = "button";
+      close.textContent = "×";
+      close.setAttribute("aria-label", `Close ${entry.name}`);
+      close.onclick = () => closeDesign(index);
+      tab.append(close);
+    }
+    return tab;
+  });
+  openDesignBar.replaceChildren(...tabs);
+  openDesignBar.scrollLeft = previousScroll;
+  const current = openDesignBar.querySelector('[aria-current="true"]');
+  if (!current) return;
+  const bar = openDesignBar.getBoundingClientRect();
+  const tab = current.parentElement.getBoundingClientRect();
+  if (tab.left < bar.left) openDesignBar.scrollLeft += tab.left - bar.left;
+  if (tab.right > bar.right) openDesignBar.scrollLeft += tab.right - bar.right;
+}
+
+function drawSplitPreview() {
+  if (splitPreview.hidden) return;
+  const design = library.designs[splitDesign].label;
+  const view = openDesigns.get(splitDesign);
+  const zoom = Number(view.zoom ?? 1);
+  const scale = Math.max(0.1, Math.min((splitPreview.clientWidth - 64) / design.width,
+    (splitPreview.clientHeight - 90) / design.height, 8)) * zoom;
+  const width = design.width * scale;
+  const height = design.height * scale;
+  splitCanvas.style.width = `${width}px`;
+  splitCanvas.style.height = `${height}px`;
+  splitCanvas.style.borderRadius = `${cornerRadius(design) * scale}px`;
+  const limitX = Math.max(0, (splitPreview.clientWidth - width) / 2 - 24);
+  const limitY = Math.max(0, (splitPreview.clientHeight - height - 26) / 2 - 24);
+  const x = Math.max(-limitX, Math.min(limitX, view.pan?.x ?? 0));
+  const y = Math.max(-limitY, Math.min(limitY, view.pan?.y ?? 0));
+  splitCanvas.style.translate = `${x}px ${y - 13}px`;
+  splitCanvas.width = Math.max(1, Math.round(width * devicePixelRatio));
+  splitCanvas.height = Math.max(1, Math.round(height * devicePixelRatio));
+  drawLabel(splitCanvas.getContext("2d"), design, splitCanvas.width, splitCanvas.height,
+    loadImages(design, splitImages));
+}
+
+splitView.onclick = () => {
+  splitDesign = splitDesign === undefined ? [...openDesigns.keys()].find(index => index !== library.active) : undefined;
+  activeOnRight = false;
+  renderOpenDesigns();
+};
+splitPreview.onclick = () => {
+  if (openDesign(splitDesign)) controls.preview.focus({ preventScroll: true });
+};
+
+function closeDesign(index) {
+  if (openDesigns.size < 2) return;
+  if (index === library.active) {
+    const keys = [...openDesigns.keys()];
+    const position = keys.indexOf(index);
+    if (!openDesign(keys[position + 1] ?? keys[position - 1])) return;
+  }
+  openDesigns.delete(index);
+  renderOpenDesigns();
+  galleryCards.get(index)?.update();
+  openDesignBar.querySelector('[aria-current="true"]')?.focus({ preventScroll: true });
 }
 
 function filterDesignGallery() {
@@ -520,19 +632,38 @@ libraryControl("design-untrash").onclick = () => {
 function openDesign(active, designs = library.designs) {
   finishInlineText(true);
   closePieMenu();
+  cancelDrag();
+  stopPanning();
+  const previous = library.active;
   const next = { active, designs };
-  if (persistLibrary(next)) {
-    library = next;
-    label = designs[active].label;
-    multiSelection.clear();
-    selected = label.elements.length ? 0 : -1;
-    past.length = 0;
-    future.length = 0;
-    cancelDrag();
-    controls.status.textContent = "";
-    syncControls();
+  if (!persistLibrary(next)) return false;
+  if (active === splitDesign) {
+    splitDesign = previous;
+    activeOnRight = !activeOnRight;
   }
+  openDesigns.set(previous, { past, future, selected, pan, zoom: canvasZoom.value,
+    scrollLeft: stageViewport.scrollLeft, scrollTop: stageViewport.scrollTop });
+  for (const index of openDesigns.keys()) {
+    if (designs[index].trashed) openDesigns.delete(index);
+  }
+  const view = openDesigns.get(active) ?? {};
+  openDesigns.set(active, view);
+  library = next;
+  label = designs[active].label;
+  multiSelection.clear();
+  selected = view.selected ?? (label.elements.length ? 0 : -1);
+  past = view.past ?? [];
+  future = view.future ?? [];
+  pan = view.pan ?? { x: 0, y: 0 };
+  canvasZoom.value = view.zoom ?? "1";
+  canvasZoom.onchange();
+  controls.status.textContent = "";
+  syncControls();
   syncLibraryControls();
+  requestAnimationFrame(() => {
+    if (library.active === active) stageViewport.scrollTo(view.scrollLeft ?? 0, view.scrollTop ?? 0);
+  });
+  return true;
 }
 
 controls["design-name"].onchange = () => {
@@ -2798,6 +2929,53 @@ document.addEventListener("keydown", event => {
 });
 const stageViewport = document.querySelector("#stage-viewport");
 const canvasZoom = document.querySelector("#canvas-zoom");
+const stage = controls.stage;
+let panDrag;
+
+function stopPanning() {
+  if (!panDrag) return;
+  const { pointerId } = panDrag;
+  panDrag = undefined;
+  delete stage.dataset.panning;
+  if (stage.hasPointerCapture(pointerId)) stage.releasePointerCapture(pointerId);
+}
+
+stage.addEventListener("pointerdown", event => {
+  const background = event.button === 0 && event.target === stage;
+  if (panDrag || drag || (!background && event.button !== 1)) return;
+  event.preventDefault();
+  event.stopPropagation();
+  finishInlineText(true);
+  closePieMenu();
+  const [x, y] = canvas.style.translate.split(" ").map(value => parseFloat(value) || 0);
+  panDrag = { pointerId: event.pointerId, clientX: event.clientX, clientY: event.clientY, x: x ?? 0, y: y ?? 0 };
+  stage.setPointerCapture(event.pointerId);
+  stage.dataset.panning = "";
+}, true);
+
+stage.addEventListener("pointermove", event => {
+  if (panDrag?.pointerId !== event.pointerId) return;
+  pan = { x: panDrag.x + event.clientX - panDrag.clientX, y: panDrag.y + event.clientY - panDrag.clientY };
+  schedulePreview();
+});
+
+for (const type of ["pointerup", "pointercancel", "lostpointercapture"]) {
+  stage.addEventListener(type, event => {
+    if (event.pointerId === panDrag?.pointerId) stopPanning();
+  });
+}
+
+stage.addEventListener("auxclick", event => {
+  if (event.button === 1) event.preventDefault();
+});
+
+document.querySelector("#center-label").onclick = () => {
+  stopPanning();
+  pan = { x: 0, y: 0 };
+  stageViewport.scrollTo((stage.scrollWidth - stageViewport.clientWidth) / 2,
+    (stage.scrollHeight - stageViewport.clientHeight) / 2);
+  schedulePreview();
+};
 canvasZoom.onchange = () => {
   stageViewport.toggleAttribute("data-zoom", Number(canvasZoom.value) > 1);
   schedulePreview();
