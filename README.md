@@ -76,19 +76,19 @@ The [Label-IT and gLabels comparison](https://github.com/postmanpat-303/labelit/
 
 ## Label-IT vs. gLabels
 
-On this **17-feature checklist**, Label-IT 0.1.3 Preview covers **17 of 17 (100%)** and gLabels 4 has **9 of 17 documented (52.9%)**. Each row has equal weight. The figures measure coverage of these selected workflows.
+On this **17-feature checklist**, Label-IT 0.1.3 Preview covers **17 of 17 (100%)** and gLabels 4 covers **9 of 17 confirmed features (52.9%)**. Each row has equal weight. The figures measure coverage of these selected workflows.
 
 | Feature | Label-IT | gLabels 4 (Qt development version) |
 | --- | --- | --- |
-| Place and edit text | Available | Documented |
-| Add images | Available | Documented |
-| Create barcodes | Available | Documented |
-| Print from CSV | Available on supported Windows printer setups | Documented as data merge |
-| Custom label sizes | Available | Documented via templates |
-| Sheet labels | Available · A4 or US Letter PDF with repeated copies | Documented · sheet stock templates |
-| Business cards | Available · two size presets for sheet PDF export | Documented · card stock templates |
-| Shape tools | Available · rectangle, ellipse, and line | Documented |
-| Continuous roll | Available · design height sets print length, driver handles sensing and cutting | Documented |
+| Place and edit text | Available | Available |
+| Add images | Available | Available |
+| Create barcodes | Available | Available |
+| Print from CSV | Available on supported Windows printer setups | Available as data merge |
+| Custom label sizes | Available | Available via templates |
+| Sheet labels | Available · A4 or US Letter PDF with repeated copies | Available · sheet stock templates |
+| Business cards | Available · two size presets for sheet PDF export | Available · card stock templates |
+| Shape tools | Available · rectangle, ellipse, and line | Available |
+| Continuous roll | Available · design height sets print length, driver handles sensing and cutting | Available |
 | Filter stock by selected printer | Available | Unconfirmed |
 | Guided alignment with live preview | Available on supported Windows printer setups | Unconfirmed |
 | Save offsets per printer and stock | Available on supported Windows printer setups | Unconfirmed |
