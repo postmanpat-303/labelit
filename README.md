@@ -22,6 +22,18 @@ The [Label-IT and gLabels comparison](https://github.com/postmanpat-303/labelit/
 
 The 50% figure applies to this checklist. gLabels also supports sheet labels, business cards, and shape tools, and its Qt development version adds continuous-roll support. [gLabels project](https://glabels.org/) · [gLabels Qt project](https://github.com/j-evins/glabels-qt)
 
+### Feature timeline
+
+As of **21 November 2026**, gLabels has about **25 years of project history** dating back to 2001. Label-IT’s **first public preview was released 20 November 2026** and its second public build followed the next day. The gLabels start year comes from the project’s source history. The Label-IT dates are GitHub publication dates.
+
+| Project | Milestone | Feature progression |
+| --- | --- | --- |
+| gLabels | 2001 · Project origins | Label and business card design for laser and inkjet printers. [GTK project](https://github.com/j-evins/glabels-gtk) |
+| gLabels | 3.x era · Legacy support ended in 2018 | Sheet stock templates, editable text, images and shapes, barcodes, and data merge for batches. [Project overview](https://glabels.org/) |
+| gLabels | 4.x · In development by December 2018 | The Qt rewrite adds cross-platform support, continuous-roll labels, user-defined variables, and more stock templates. [2018 release discussion](https://github.com/j-evins/glabels-qt/issues/43) · [Qt project](https://github.com/j-evins/glabels-qt) |
+| Label-IT | 20 November 2026 · First public preview | Actual-size design with text, images and barcodes, compatible gLabels import, and direct Windows printing tested on a Zebra ZD410. Linux printing uses exact-size PDF export. [First preview](https://github.com/postmanpat-303/labelit/releases/tag/v0.1.0-preview) |
+| Label-IT | 21 November 2026 · Linux compatibility preview | Font and Size moved to the top of text properties, the gLabels importer gained warnings for unreadable embedded images, and Debian 12-based packages lowered the Linux glibc requirement to 2.34. [Linux compatibility preview](https://github.com/postmanpat-303/labelit/releases/tag/v0.1.0-linux-compat) |
+
 ## Install on Windows
 
 Run the **Windows x64 setup executable** on Windows 10 or later. The installer checks for Microsoft Edge WebView2 and adds Label-IT to the Start menu. Select **Run Label-IT now** at the end of setup to open it maximised. The current preview installer is unsigned. Windows 10 is a compatibility target and still needs a clean-install test.
