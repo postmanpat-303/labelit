@@ -28,7 +28,14 @@ jobs:
           APPLE_SIGNING_IDENTITY: "-"
         run: npx --yes @tauri-apps/cli@2 build --target universal-apple-darwin --bundles dmg --ci -- --locked
       - name: Verify both architectures
-        run: lipo src-tauri/target/universal-apple-darwin/release/bundle/macos/Label-IT.app/Contents/MacOS/labelit -verify_arch arm64 x86_64
+        run: |
+          dmg=(src-tauri/target/universal-apple-darwin/release/bundle/dmg/*.dmg)
+          mount_dir="$(mktemp -d)"
+          hdiutil attach "${dmg[0]}" -readonly -nobrowse -mountpoint "$mount_dir"
+          trap 'hdiutil detach "$mount_dir"' EXIT
+          app="$mount_dir/Label-IT.app/Contents"
+          executable=$(/usr/libexec/PlistBuddy -c 'Print :CFBundleExecutable' "$app/Info.plist")
+          lipo "$app/MacOS/$executable" -verify_arch arm64 x86_64
       - uses: actions/upload-artifact@v4
         with:
           name: Label-IT-macOS-universal-test
