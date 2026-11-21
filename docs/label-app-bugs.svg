@@ -1,0 +1,33 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="920" height="576" viewBox="0 0 920 576" role="img" aria-labelledby="title desc">
+  <title id="title">Label-IT and gLabels Qt bug comparison</title>
+  <desc id="desc">Selected reports about file compatibility, CSV import and label sizing. Label-IT’s corrupt artwork import fix was verified locally and is awaiting release.</desc>
+  <rect width="920" height="576" rx="22" fill="#131923"/>
+  <g font-family="system-ui, sans-serif" fill="#f2f5fb">
+    <text x="34" y="54" font-size="30" font-weight="700">Label-IT and gLabels</text>
+    <text x="34" y="84" font-size="16" fill="#b6c2d4">Reported bugs and what’s been verified</text>
+    <path d="M460 114v383" stroke="#46536b"/>
+    <text x="34" y="140" font-size="23" font-weight="700" fill="#afc7ff">gLabels Qt</text>
+    <text x="485" y="140" font-size="23" font-weight="700" fill="#d9f89c">Label-IT</text>
+    <path d="M34 155h402" stroke="#afc7ff" stroke-width="3"/>
+    <path d="M485 155h401" stroke="#d9f89c" stroke-width="3"/>
+    <g font-size="18" font-weight="700">
+      <text x="34" y="192">File compatibility</text><text x="485" y="192">File compatibility</text>
+      <text x="34" y="305">CSV import</text><text x="485" y="305">CSV import</text>
+      <text x="34" y="418">Label dimensions</text><text x="485" y="418">Print alignment</text>
+    </g>
+    <g font-size="14" font-weight="600">
+      <g fill="#afc7ff"><text x="34" y="215">OPEN REPORT · #239</text><text x="34" y="328">CLOSED · #217</text><text x="34" y="441">CLOSED · #181</text></g>
+      <g fill="#d9f89c"><text x="485" y="215">FIX VERIFIED LOCALLY · #1</text><text x="485" y="328">GUARD ADDED LOCALLY</text><text x="485" y="441">VERIFIED ON ZEBRA ZD410</text></g>
+    </g>
+    <g font-size="16" fill="#e0e7f3">
+      <text x="34" y="242">A gLabels 3.4.1 file was reported</text><text x="34" y="264">as unsupported in the Qt tracker.</text>
+      <text x="485" y="242">The local build warns about unreadable artwork</text><text x="485" y="264">and keeps usable content. Release pending.</text>
+      <text x="34" y="355">A Windows build became unresponsive</text><text x="34" y="377">when importing a CSV with over 4,000 rows.</text>
+      <text x="485" y="355">Files over 8 MB are rejected before reading.</text><text x="485" y="377">4,000-row performance remains unverified.</text>
+      <text x="34" y="468">A saved continuous label reopened</text><text x="34" y="490">with a locked length of zero.</text>
+      <text x="485" y="468">Feed calibration recovered full-height printing</text><text x="485" y="490">on the tested 50 × 30 mm stock.</text>
+    </g>
+    <path d="M34 518h852" stroke="#46536b"/>
+    <text x="34" y="548" font-size="14" fill="#b6c2d4">Selected examples. A reliability comparison requires the same tests on both apps.</text>
+  </g>
+</svg>
