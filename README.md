@@ -1,6 +1,16 @@
 # Label-IT
 
-Label-IT is a desktop label designer for printing at actual size.
+Design labels, barcodes, and business cards at actual size on Windows, Linux, and macOS. Open designs side by side, set up thermal stock, or export a ready-to-print sheet.
+
+[![Frontend checks](https://github.com/postmanpat-303/labelit/actions/workflows/frontend-checks.yml/badge.svg?branch=main)](https://github.com/postmanpat-303/labelit/actions/workflows/frontend-checks.yml)
+
+[**Download 0.1.3 Preview**](https://github.com/postmanpat-303/labelit/releases/tag/v0.1.3-preview) · [Screenshots](#screenshots) · [Compare with gLabels](#label-it-and-glabels-feature-comparison) · [Report an issue](https://github.com/postmanpat-303/labelit/issues/new)
+
+| Platform | Preview downloads | Setup |
+| --- | --- | --- |
+| Windows x64 | [Setup installer](https://github.com/postmanpat-303/labelit/releases/download/v0.1.3-preview/Label-IT-0.1.3-windows-x64-setup.exe) | [Windows instructions](#install-on-windows) |
+| Linux x86-64 | [Debian package](https://github.com/postmanpat-303/labelit/releases/download/v0.1.3-preview/label-it_0.1.3_amd64.deb) · [AppImage](https://github.com/postmanpat-303/labelit/releases/download/v0.1.3-preview/Label-IT_0.1.3_amd64.AppImage) · [Portable archive](https://github.com/postmanpat-303/labelit/releases/download/v0.1.3-preview/Label-IT-0.1.3-linux-x86_64.tar.gz) | [Linux instructions](#install-on-linux) |
+| macOS · Apple silicon and Intel | [Universal DMG](https://github.com/postmanpat-303/labelit/releases/download/v0.1.3-preview/Label-IT-0.1.3-macOS-universal.dmg) | [macOS instructions](#install-on-macos) |
 
 ## Screenshots
 
@@ -9,6 +19,9 @@ Label-IT is a desktop label designer for printing at actual size.
 Open several designs in tabs and click either pane to switch which design you’re editing. Each open design keeps its own zoom, position, and undo history during the session. Drag the dotted background to reposition the view, or select **Center label** to reset it.
 
 ![Label-IT Split view with a business card on the left and a barcode label on the right](docs/screenshots/split-view.png)
+
+<details>
+<summary>More screenshots of sheet labels, shapes, printer setup, and the PIE menu</summary>
 
 ### Business cards and sheet labels
 
@@ -27,9 +40,6 @@ Add rectangles, ellipses, and lines, then resize them on the canvas or enter dim
 Font and size controls sit at the top of the left panel. Label stock, printer settings, and print actions are on the right.
 
 ![Label-IT editor with a selected text object, font controls, and printer settings](docs/screenshots/label-editor.png)
-
-<details>
-<summary>Printer setup, PIE menu, and thermal raster test</summary>
 
 **First-run setup**
 
@@ -198,6 +208,10 @@ On this workspace's existing Rust GNU toolchain, add the local MinGW tools to th
 ```powershell
 $env:Path = "$env:USERPROFILE\tools\w64devkit\w64devkit\bin;$env:Path"
 ```
+
+## Technology
+
+Label-IT uses Tauri 2 and Rust for the desktop app, with HTML, CSS, JavaScript modules, and Canvas for the editor. The frontend build uses Node.js. GitHub Actions checks the frontend on pushes and pull requests and builds the universal macOS preview on demand.
 
 ## Browser prototype
 

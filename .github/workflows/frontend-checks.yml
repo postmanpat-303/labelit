@@ -1,0 +1,30 @@
+name: Frontend checks
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  frontend:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v6
+        with:
+          node-version: 24
+          package-manager-cache: false
+      - name: Check JavaScript syntax
+        run: |
+          node --check build-frontend.mjs
+          node --check serve.mjs
+          find src -type f -name '*.mjs' -print0 | xargs -0 -n 1 node --check
+      - name: Build the frontend bundle
+        run: node build-frontend.mjs
