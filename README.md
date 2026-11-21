@@ -2,6 +2,37 @@
 
 Label-IT is a desktop label designer for printing at actual size.
 
+## Screenshots
+
+**Label editor**
+
+Font and size controls sit at the top of the left panel. Label stock, printer settings, and print actions are on the right.
+
+![Label-IT editor with a selected text object, font controls, and printer settings](docs/screenshots/label-editor.png)
+
+<details>
+<summary>Printer setup, PIE menu, and thermal raster test</summary>
+
+**First-run setup**
+
+Choose an installed printer or come back to setup later.
+
+![Label-IT welcome dialog showing the list of installed printers](references/label-it/printer-welcome.png)
+
+**PIE menu**
+
+Right-click a label element to open its properties, arrange it, duplicate it, or delete it.
+
+![Label-IT PIE menu with labelled actions over the label canvas](docs/screenshots/pie-menu.png)
+
+**Thermal raster test**
+
+A full-label gradient on rounded 50 × 30 mm stock shows the stock, printer, and calibration controls together.
+
+![Full-label thermal raster test on rounded stock with the calibration panel visible](references/label-it/thermal-raster-test.png)
+
+</details>
+
 ## Designed for everyday use
 
 1. **Choose your printer and stock.** First-run setup helps you pick an installed printer. The stock list can filter sizes against known printer limits, and you can enter custom dimensions in millimetres.
