@@ -26,6 +26,7 @@ export function readDesignEntry(entry, index = 0) {
         || !Number.isFinite(element.x) || !Number.isFinite(element.y) || !within(element.size, 1, 220)
         || (element.scaleX !== undefined && !(Number.isFinite(element.scaleX) && element.scaleX > 0))
         || (element.wrapWidth !== undefined && !within(element.wrapWidth, 1, 220))
+        || (element.textAlign !== undefined && !["left", "center", "right"].includes(element.textAlign))
         || (element.fitHeight !== undefined && !within(element.fitHeight, 1, 300))
         || (element.minimumSize !== undefined && !within(element.minimumSize, 1, 40))) {
       throw new Error(`Design ${index + 1} contains an invalid element.`);

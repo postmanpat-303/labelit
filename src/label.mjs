@@ -209,9 +209,12 @@ export function drawLabel(context, label, width, height, images) {
     context.font = `${layout.size}px ${textFontFamily(element)}`;
     context.save();
     context.translate(element.x, element.y);
-    context.scale(element.scaleX ?? 1, 1);
+    const scaleX = element.scaleX ?? 1;
+    context.scale(scaleX, 1);
+    context.textAlign = ["center", "right"].includes(element.textAlign) ? element.textAlign : "left";
+    const anchor = context.textAlign === "center" ? layout.width / 2 : context.textAlign === "right" ? layout.width : 0;
     layout.lines.forEach((line, index) => {
-      context.fillText(line, 0, index * layout.size * 1.2);
+      context.fillText(line, anchor / scaleX, index * layout.size * 1.2);
     });
     context.restore();
   }

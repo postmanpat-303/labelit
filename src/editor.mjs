@@ -289,6 +289,8 @@ function syncControls() {
   controls["font-field"].hidden = !isText(element);
   controls["font-family"].value = textFontFamily(element);
   document.querySelector("#text-box-settings").hidden = !isText(element);
+  document.querySelector("#text-alignment-field").hidden = !isText(element);
+  textAlignment.value = element?.textAlign ?? "left";
   for (const [property, input] of textBoxControls) input.value = element?.[property] ?? "";
   controls.undo.disabled = !past.length;
   controls.redo.disabled = !future.length;
@@ -808,13 +810,15 @@ controls["duplicate-design"].onclick = () => {
   createDesign(`${name} copy`, label);
 };
 
-function showInspector(view) {
+function showInspector(view, reveal = false) {
+  const switching = controls[`${view}-panel`].hidden;
   for (const tab of ["designs", "properties"]) {
     const active = tab === view;
     controls[`${tab}-tab`].setAttribute("aria-selected", String(active));
     controls[`${tab}-tab`].tabIndex = active ? 0 : -1;
     controls[`${tab}-panel`].hidden = !active;
   }
+  if (reveal || switching) controls[`${view}-tab`].closest(".creation-panel").scrollTop = 0;
 }
 
 const pieCardHighlights = new WeakMap();
@@ -833,7 +837,7 @@ function highlightPieInspector(view) {
 
 for (const view of ["designs", "properties"]) {
   const tab = controls[`${view}-tab`];
-  tab.onclick = () => showInspector(view);
+  tab.onclick = () => showInspector(view, true);
   tab.onkeydown = event => {
     if (!["ArrowLeft", "ArrowRight", "Home", "End"].includes(event.key)) return;
     event.preventDefault();
@@ -1049,26 +1053,36 @@ function startInlineText(index, point) {
     x: roundPosition(point.x), y: roundPosition(point.y), size: 4, text: ""
   } : label.elements[index];
   inlineEdit = { index, element };
+  showInspector("properties", true);
+  inlineText.value = element.text;
+  inlineText.hidden = false;
+  positionInlineText();
+  inlineText.focus({ preventScroll: true });
+  inlineText.select();
+  schedulePreview();
+}
+
+function positionInlineText() {
+  if (!inlineEdit) return;
+  const { element } = inlineEdit;
   const context = canvas.getContext("2d");
-  const bounds = elementBounds(context, element);
+  const layout = layoutText(context, { ...element, text: inlineText.value });
   const origin = stageOrigin();
   const rect = canvas.getBoundingClientRect();
   const scaleX = rect.width / label.width;
   const scaleY = rect.height / label.height;
-  const stage = controls.stage;
-  const width = Math.min(stage.clientWidth - 16, Math.max(160, bounds.width * scaleX + 10));
-  const height = Math.min(stage.clientHeight - 16, Math.max(44, bounds.height * scaleY + 12));
-  inlineText.style.left = `${Math.max(8, Math.min(stage.clientWidth - width - 8, origin.x + bounds.x * scaleX))}px`;
-  inlineText.style.top = `${Math.max(8, Math.min(stage.clientHeight - height - 8, origin.y + bounds.y * scaleY))}px`;
-  inlineText.style.width = `${width}px`;
+  const stretch = (element.scaleX ?? 1) * scaleX / scaleY;
+  const width = Math.max(layout.width * scaleX, inlineText.value ? 0 : 120);
+  const height = layout.lines.length * layout.size * scaleY * 1.2;
+  inlineText.style.left = `${origin.x + element.x * scaleX}px`;
+  inlineText.style.top = `${origin.y + element.y * scaleY - layout.size * scaleY * 0.1}px`;
+  inlineText.style.width = `${width / stretch}px`;
   inlineText.style.height = `${height}px`;
-  inlineText.style.fontSize = `${Math.max(14, Math.min(48, element.size * scaleY))}px`;
+  inlineText.style.fontSize = `${layout.size * scaleY}px`;
   inlineText.style.fontFamily = textFontFamily(element);
-  inlineText.value = element.text;
-  inlineText.hidden = false;
-  inlineText.focus({ preventScroll: true });
-  inlineText.select();
-  schedulePreview();
+  inlineText.style.textAlign = element.textAlign ?? "left";
+  inlineText.style.transform = `scaleX(${stretch})`;
+  inlineText.style.whiteSpace = element.wrapWidth ? "pre-wrap" : "pre";
 }
 
 function finishInlineText(commit) {
@@ -1087,6 +1101,7 @@ function finishInlineText(commit) {
 }
 
 inlineText.onblur = () => finishInlineText(true);
+inlineText.oninput = positionInlineText;
 inlineText.onkeydown = event => {
   if (event.key === "Escape" || (event.key === "Enter" && (event.ctrlKey || event.metaKey))) {
     event.preventDefault();
@@ -1473,6 +1488,11 @@ const textBoxControls = [
   ["fitHeight", document.querySelector("#text-fit")],
   ["minimumSize", document.querySelector("#text-minimum")]
 ];
+const textAlignment = document.querySelector("#text-alignment");
+textAlignment.onchange = () => {
+  const element = label.elements[selected];
+  if (isText(element) && !element.locked) updateElement(selected, { textAlign: textAlignment.value });
+};
 for (const [property, input] of textBoxControls) {
   input.onchange = () => {
     const element = label.elements[selected];
@@ -1487,6 +1507,16 @@ for (const [property, input] of textBoxControls) {
 document.querySelector("#align-element").onclick = event => {
   const button = event.target.closest("button");
   if (!button || selected < 0) return;
+  if ("centerRows" in button.dataset) {
+    const rows = selectionIndices().map(index => label.elements[index])
+      .filter(element => isText(element) && !element.locked);
+    const context = canvas.getContext("2d");
+    const positions = rows.map(element => roundPosition((label.width - elementBounds(context, element).width) / 2));
+    if (rows.some((element, index) => element.x !== positions[index])) {
+      change(() => rows.forEach((element, index) => { element.x = positions[index]; }));
+    }
+    return;
+  }
   alignElement(button.dataset.axis, button.dataset.align);
 };
 
