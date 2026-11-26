@@ -1,7 +1,7 @@
 import { isBarcodeValue, shapeNames } from "./label.mjs";
 
 const within = (value, min, max) => Number.isFinite(value) && value >= min && value <= max;
-const fileName = name => name.replace(/[<>:"/\\|?*\u0000-\u001f]/g, "_").trim() || "Label-IT";
+export const fileName = name => name.replace(/[<>:"/\\|?*\u0000-\u001f]/g, "_").trim() || "Label-IT";
 
 export function downloadLibraryFile(name, extension, data) {
   const url = URL.createObjectURL(new Blob([JSON.stringify(data)], { type: "application/json" }));

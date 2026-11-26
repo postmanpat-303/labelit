@@ -1,11 +1,11 @@
 import { setupCsvPrinting } from "./csv-print.mjs";
-import { downloadLibraryFile, isPrintProfileKey, readBackup, readDesignEntry } from "./library-files.mjs";
+import { downloadLibraryFile, fileName, isPrintProfileKey, readBackup, readDesignEntry } from "./library-files.mjs";
 import { historyEntries, rememberJob } from "./print-history.mjs";
 import { cornerRadius, finishPrintRaster, insideStock, previewOnStock, printTone } from "./print-raster.mjs";
 import { thermalPrinterProfile } from "./thermal-printers.mjs";
 import { readGlabelsDesign } from "./glabels-import.mjs";
 import { barcodeAtResolution, barcodeNames, drawLabel, makePdf, millimetresPerInch, elementBounds, isBarcodeValue,
-  layoutText, normaliseBarcode, shapeNames, sheetLayout, textFontFamily } from "./label.mjs";
+  extraShapes, layoutText, normaliseBarcode, shapeNames, sheetLayout, textFontFamily } from "./label.mjs";
 
 const controls = Object.fromEntries(
   ["undo", "redo", "export", "print", "preset", "width", "height", "dpi", "add", "remove",
@@ -174,9 +174,16 @@ function drawPreview() {
     }
     design = { ...design, elements };
   }
-  const previewDesign = inlineEdit && inlineEdit.index >= 0
-    ? { ...design, elements: design.elements.filter((_, index) => index !== inlineEdit.index) }
-    : design;
+  let previewDesign = design;
+  if (inlineEdit && inlineText.classList.contains("canvas-text-draft")) {
+    const elements = design.elements.slice();
+    const draft = { ...inlineEdit.element, text: inlineText.value };
+    if (inlineEdit.index < 0) elements.push(draft);
+    else elements[inlineEdit.index] = draft;
+    previewDesign = { ...design, elements };
+  } else if (inlineEdit?.index >= 0) {
+    previewDesign = { ...design, elements: design.elements.filter((_, index) => index !== inlineEdit.index) };
+  }
   drawLabel(context, previewDesign, pixelWidth, pixelHeight, loadImages(design));
   updateBarcodeWarning(context, design);
   drawRulers(design, width, height);
@@ -259,6 +266,7 @@ function syncControls() {
   mediaMode.value = label.media ?? "label";
   sheetForm.hidden = mediaMode.value !== "sheet";
   document.querySelector("#roll-help").hidden = mediaMode.value !== "continuous";
+  document.querySelector("#media-calibration").hidden = mediaMode.value !== "label";
   document.querySelector("#csv-open").hidden = !invoke || mediaMode.value === "sheet";
   controls.print.textContent = mediaMode.value === "sheet" ? "Export sheet PDF" : "Print";
   const gap = mediaMode.value === "label" ? controls.preset.selectedOptions[0].dataset.gap : undefined;
@@ -291,6 +299,8 @@ function syncControls() {
   document.querySelector("#text-box-settings").hidden = !isText(element);
   document.querySelector("#text-alignment-field").hidden = !isText(element);
   textAlignment.value = element?.textAlign ?? "left";
+  document.querySelector("#text-mode-field").hidden = !isText(element);
+  textMode.value = element?.wrapWidth ? "paragraph" : "point";
   for (const [property, input] of textBoxControls) input.value = element?.[property] ?? "";
   controls.undo.disabled = !past.length;
   controls.redo.disabled = !future.length;
@@ -357,10 +367,20 @@ const libraryControl = id => document.getElementById(id);
 const folderFilter = libraryControl("design-folder-filter");
 
 function createGalleryCard(entry, index) {
-  const card = document.createElement("button");
-  card.type = "button";
-  card.className = "design-card";
-  if (index === library.active) card.setAttribute("aria-current", "true");
+  const card = document.createElement("div");
+  card.className = "design-gallery-item";
+  const open = document.createElement("button");
+  open.type = "button";
+  open.className = "design-card";
+  if (index === library.active) open.setAttribute("aria-current", "true");
+  const trash = document.createElement("button");
+  trash.type = "button";
+  trash.className = "design-card-remove";
+  trash.textContent = "Remove";
+  trash.setAttribute("aria-label", `Remove ${entry.name} from saved designs`);
+  trash.onclick = () => {
+    if (trashDesign(index)) controls["design-search"].focus({ preventScroll: true });
+  };
   const preview = document.createElement("span");
   preview.className = "design-preview";
   const thumbnail = document.createElement("canvas");
@@ -378,7 +398,11 @@ function createGalleryCard(entry, index) {
   name.append(entry.name);
   const dimensions = document.createElement("span");
   dimensions.className = "design-card-size";
-  card.append(preview, name, dimensions);
+  const state = document.createElement("span");
+  state.className = "design-card-state";
+  preview.append(state);
+  open.append(preview, name, dimensions);
+  card.append(open, trash);
   const cache = new Map();
   function update() {
     const design = entry.label;
@@ -389,17 +413,18 @@ function createGalleryCard(entry, index) {
     thumbnail.style.height = `${height}px`;
     thumbnail.width = width * 2;
     thumbnail.height = height * 2;
-    const current = openDesigns.has(index) ? " · Open" : "";
-    dimensions.textContent = `${design.width} × ${design.height} mm${current}`;
+    state.textContent = index === library.active ? "Editing" : openDesigns.has(index) ? "Open in tab" : "";
+    state.hidden = !state.textContent;
+    dimensions.textContent = `${design.width} × ${design.height} mm`;
     const assets = loadImages(design, cache, update);
     drawLabel(thumbnail.getContext("2d"), design, thumbnail.width, thumbnail.height, assets);
   }
-  card.onclick = () => {
+  open.onclick = () => {
     if (index !== library.active) openDesign(index);
-    galleryCards.get(index)?.card.focus();
+    galleryCards.get(index)?.open.focus();
   };
   update();
-  return { card, update };
+  return { card, open, update };
 }
 
 function syncLibraryControls() {
@@ -616,13 +641,25 @@ libraryControl("template-form").onsubmit = event => {
   templateDialog.close();
   createDesign(name, templateSource.label, { folder: templateSource.folder, tags: templateSource.tags });
 };
-libraryControl("design-trash").onclick = () => {
+function trashDesign(index) {
+  if (!library.designs[index] || library.designs[index].trashed) return false;
+  finishInlineText(true);
   const designs = library.designs.slice();
-  designs[library.active] = { ...designs[library.active], trashed: true };
-  let next = designs.findIndex(entry => !entry.trashed);
-  if (next < 0) next = designs.push({ name: "Untitled label", label: structuredClone(startingLabel) }) - 1;
-  openDesign(next, designs);
-};
+  designs[index] = { ...designs[index], trashed: true };
+  if (index === library.active) {
+    let next = [...openDesigns.keys()].find(key => !designs[key].trashed) ?? designs.findIndex(entry => !entry.trashed);
+    if (next < 0) next = designs.push({ name: "Untitled label", label: structuredClone(startingLabel) }) - 1;
+    return openDesign(next, designs);
+  }
+  const next = { ...library, designs };
+  if (!persistLibrary(next)) return false;
+  library = next;
+  openDesigns.delete(index);
+  syncLibraryControls();
+  schedulePreview();
+  return true;
+}
+libraryControl("design-trash").onclick = () => trashDesign(library.active);
 libraryControl("design-untrash").onclick = () => {
   const index = Number(libraryControl("design-trash-list").value);
   if (!library.designs[index]?.trashed) return;
@@ -630,6 +667,41 @@ libraryControl("design-untrash").onclick = () => {
   designs[index] = { ...designs[index], trashed: false };
   openDesign(index, designs);
 };
+
+const designDeleteDialog = libraryControl("design-delete-dialog");
+let pendingDesignDeletion;
+libraryControl("design-delete").onclick = () => {
+  const index = Number(libraryControl("design-trash-list").value);
+  const entry = library.designs[index];
+  if (!entry?.trashed) return;
+  pendingDesignDeletion = entry;
+  libraryControl("design-delete-description").textContent = `“${entry.name}” will be deleted from this library and can no longer be restored.`;
+  designDeleteDialog.showModal();
+};
+libraryControl("design-delete-confirm").onclick = () => {
+  const index = library.designs.indexOf(pendingDesignDeletion);
+  if (index < 0 || !library.designs[index].trashed) {
+    designDeleteDialog.close();
+    return;
+  }
+  const reindex = key => key > index ? key - 1 : key;
+  const designs = library.designs.filter((_, key) => key !== index);
+  const next = { ...library, designs, active: reindex(library.active) };
+  if (persistLibrary(next)) {
+    library = next;
+    const views = [...openDesigns];
+    openDesigns.clear();
+    for (const [key, view] of views) {
+      if (key !== index) openDesigns.set(reindex(key), view);
+    }
+    if (splitDesign !== undefined) splitDesign = reindex(splitDesign);
+    syncLibraryControls();
+    schedulePreview();
+  }
+  designDeleteDialog.close();
+  if (libraryControl("design-trash-bin").hidden) controls["design-search"].focus({ preventScroll: true });
+};
+designDeleteDialog.onclose = () => { pendingDesignDeletion = undefined; };
 
 function openDesign(active, designs = library.designs) {
   finishInlineText(true);
@@ -694,6 +766,7 @@ function createDesign(baseName, design, metadata = {}) {
     libraryControl("design-templates-only").checked = false;
     folderFilter.value = "";
     filterDesignGallery();
+    controls["design-name"].closest("details").open = true;
     controls["design-name"].focus();
     controls["design-name"].select();
   }
@@ -717,10 +790,21 @@ function importLibraryFile(button, inputId, apply) {
   };
 }
 
-libraryControl("design-share").onclick = () => {
-  finishInlineText(true);
-  const { name, folder, tags } = library.designs[library.active];
-  downloadLibraryFile(name, "labelit", { format: "labelit-design", version: 1, design: { name, folder, tags, label } });
+libraryControl("design-share").onclick = async event => {
+  const button = event.currentTarget;
+  button.disabled = true;
+  try {
+    finishInlineText(true);
+    const { name, folder, tags } = library.designs[library.active];
+    const design = { format: "labelit-design", version: 1, design: { name, folder, tags, label } };
+    const saved = await saveExport(`${fileName(name)}.labelit`,
+      new Blob([JSON.stringify(design)], { type: "application/json" }));
+    controls.status.textContent = saved ? "Design exported." : "Design export cancelled.";
+  } catch (error) {
+    controls.status.textContent = `Design export failed. ${error.message ?? error}`;
+  } finally {
+    button.disabled = false;
+  }
 };
 
 importLibraryFile("design-import", "design-import-file", file => {
@@ -841,7 +925,7 @@ for (const view of ["designs", "properties"]) {
   tab.onkeydown = event => {
     if (!["ArrowLeft", "ArrowRight", "Home", "End"].includes(event.key)) return;
     event.preventDefault();
-    const next = event.key === "Home" ? "designs" : event.key === "End" ? "properties"
+    const next = event.key === "Home" ? "properties" : event.key === "End" ? "designs"
       : view === "designs" ? "properties" : "designs";
     showInspector(next);
     controls[`${next}-tab`].focus();
@@ -941,9 +1025,9 @@ shapeHeight.onchange = () => {
   if (height !== undefined && element?.type === "shape" && !element.locked) updateElement(selected, { height });
   else syncControls();
 };
-for (const button of document.querySelectorAll("[data-add-shape]")) {
-  button.onclick = () => change(() => {
-    const shape = button.dataset.addShape;
+function addShape(shape) {
+  change(() => {
+    multiSelection.clear();
     selected = label.elements.push({
       type: "shape", shape, x: 1, y: 1,
       size: Math.min(20, label.width - 2),
@@ -952,9 +1036,95 @@ for (const button of document.querySelectorAll("[data-add-shape]")) {
     showInspector("properties");
   });
 }
+
+const shapeFlyout = document.querySelector("#shape-flyout");
+const shapeTrigger = document.querySelector('[data-add-shape="rectangle"]');
+let shapeHold;
+let shapePress;
+let heldShape = false;
+
+function closeShapeFlyout() {
+  shapeFlyout.hidden = true;
+  shapeTrigger.setAttribute("aria-expanded", "false");
+}
+
+function openShapeFlyout(focus = false) {
+  shapeFlyout.hidden = false;
+  shapeTrigger.setAttribute("aria-expanded", "true");
+  const rect = shapeTrigger.getBoundingClientRect();
+  shapeFlyout.style.left = `${Math.max(8, Math.min(rect.right + 6, innerWidth - shapeFlyout.offsetWidth - 8))}px`;
+  shapeFlyout.style.top = `${Math.max(8, Math.min(rect.top, innerHeight - shapeFlyout.offsetHeight - 8))}px`;
+  if (focus) shapeFlyout.querySelector("button").focus();
+}
+
+for (const [key, { name, symbol }] of Object.entries(extraShapes)) {
+  const button = document.createElement("button");
+  const icon = document.createElement("span");
+  button.type = "button";
+  icon.textContent = symbol;
+  icon.setAttribute("aria-hidden", "true");
+  button.append(icon, name);
+  button.onclick = () => {
+    closeShapeFlyout();
+    addShape(key);
+    shapeTrigger.focus({ preventScroll: true });
+  };
+  shapeFlyout.append(button);
+}
+
+for (const button of document.querySelectorAll("[data-add-shape]")) {
+  button.onclick = () => {
+    if (button === shapeTrigger && heldShape) {
+      heldShape = false;
+      return;
+    }
+    closeShapeFlyout();
+    addShape(button.dataset.addShape);
+  };
+}
+
+function cancelShapeHold() {
+  clearTimeout(shapeHold);
+  shapePress = undefined;
+}
+shapeTrigger.onpointerdown = event => {
+  if (event.button !== 0 || !event.isPrimary) return;
+  cancelShapeHold();
+  heldShape = false;
+  shapePress = { x: event.clientX, y: event.clientY };
+  shapeHold = setTimeout(() => {
+    heldShape = true;
+    openShapeFlyout();
+  }, 400);
+};
+shapeTrigger.onpointermove = event => {
+  if (shapePress && Math.hypot(event.clientX - shapePress.x, event.clientY - shapePress.y) > 5) cancelShapeHold();
+};
+shapeTrigger.onpointerup = cancelShapeHold;
+shapeTrigger.onpointercancel = cancelShapeHold;
+shapeTrigger.onpointerleave = cancelShapeHold;
+shapeTrigger.oncontextmenu = event => {
+  event.preventDefault();
+  cancelShapeHold();
+  openShapeFlyout(true);
+};
+shapeTrigger.onkeydown = event => {
+  if (event.key !== "ArrowDown") return;
+  event.preventDefault();
+  openShapeFlyout(true);
+};
+document.addEventListener("pointerdown", event => {
+  if (!shapeFlyout.contains(event.target) && !shapeTrigger.contains(event.target)) closeShapeFlyout();
+});
+document.addEventListener("keydown", event => {
+  if (event.key !== "Escape" || shapeFlyout.hidden) return;
+  event.preventDefault();
+  closeShapeFlyout();
+  shapeTrigger.focus();
+});
 controls["add-image"].onclick = () => controls["image-file"].click();
 controls["image-file"].onchange = async () => {
-  const activeDesign = library.active;
+  const activeDesign = label;
   const input = controls["image-file"];
   const file = input.files[0];
   input.value = "";
@@ -975,7 +1145,7 @@ controls["image-file"].onchange = async () => {
       bitmap.close();
     }
     const source = resized.toDataURL("image/webp", 0.9);
-    if (library.active !== activeDesign) {
+    if (label !== activeDesign) {
       controls.status.textContent = "Image import stopped because you opened a different design.";
       return;
     }
@@ -1074,6 +1244,8 @@ function positionInlineText() {
   const stretch = (element.scaleX ?? 1) * scaleX / scaleY;
   const width = Math.max(layout.width * scaleX, inlineText.value ? 0 : 120);
   const height = layout.lines.length * layout.size * scaleY * 1.2;
+  inlineText.classList.toggle("canvas-text-draft", element.x >= 0 && element.y >= 0
+    && element.x + layout.width <= label.width && element.y + layout.height <= label.height);
   inlineText.style.left = `${origin.x + element.x * scaleX}px`;
   inlineText.style.top = `${origin.y + element.y * scaleY - layout.size * scaleY * 0.1}px`;
   inlineText.style.width = `${width / stretch}px`;
@@ -1101,7 +1273,10 @@ function finishInlineText(commit) {
 }
 
 inlineText.onblur = () => finishInlineText(true);
-inlineText.oninput = positionInlineText;
+inlineText.oninput = () => {
+  positionInlineText();
+  schedulePreview();
+};
 inlineText.onkeydown = event => {
   if (event.key === "Escape" || (event.key === "Enter" && (event.ctrlKey || event.metaKey))) {
     event.preventDefault();
@@ -1489,6 +1664,15 @@ const textBoxControls = [
   ["minimumSize", document.querySelector("#text-minimum")]
 ];
 const textAlignment = document.querySelector("#text-alignment");
+const textMode = document.querySelector("#text-mode");
+textMode.onchange = () => {
+  const element = label.elements[selected];
+  if (!isText(element) || element.locked) return;
+  const availableWidth = label.width - Math.max(0, element.x);
+  const wrapWidth = textMode.value === "paragraph" ? Math.max(1, roundPosition(availableWidth)) : undefined;
+  updateElement(selected, { wrapWidth });
+  if (wrapWidth !== undefined) document.querySelector("#text-box-settings").open = true;
+};
 textAlignment.onchange = () => {
   const element = label.elements[selected];
   if (isText(element) && !element.locked) updateElement(selected, { textAlign: textAlignment.value });
@@ -1969,6 +2153,20 @@ sheetForm.onsubmit = event => {
   exportPdf();
 };
 
+async function saveExport(filename, file) {
+  if (invoke) {
+    const bytes = await new Blob([filename, "\0", file]).arrayBuffer();
+    return invoke("save_export", bytes);
+  }
+  const url = URL.createObjectURL(file);
+  const link = document.createElement("a");
+  link.href = url;
+  link.download = filename;
+  link.click();
+  setTimeout(() => URL.revokeObjectURL(url), 1000);
+  return true;
+}
+
 async function exportPdf() {
   if (controls.export.disabled) return;
   finishInlineText(true);
@@ -1987,15 +2185,11 @@ async function exportPdf() {
     }
     const stream = new Blob([grayscale]).stream().pipeThrough(new CompressionStream("deflate"));
     const compressed = new Uint8Array(await new Response(stream).arrayBuffer());
-    const url = URL.createObjectURL(makePdf(compressed, width, height, design.width, design.height, sheet));
-    const link = document.createElement("a");
-    link.href = url;
-    link.download = sheet ? "label-sheet.pdf" : "label.pdf";
-    link.click();
-    setTimeout(() => URL.revokeObjectURL(url), 1000);
-    controls.status.textContent = "PDF exported.";
+    const pdf = makePdf(compressed, width, height, design.width, design.height, sheet);
+    const saved = await saveExport(sheet ? "label-sheet.pdf" : "label.pdf", pdf);
+    controls.status.textContent = saved ? "PDF exported." : "PDF export cancelled.";
   } catch (error) {
-    controls.status.textContent = `PDF export failed. ${error.message}`;
+    controls.status.textContent = `PDF export failed. ${error.message ?? error}`;
   } finally {
     controls.export.disabled = false;
   }
@@ -2096,6 +2290,8 @@ let queueTimer;
 function updateStockFilter() {
   const website = document.querySelector("#stock-website").value;
   const zebra = /\bZD410\b/i.test(printer.value);
+  document.querySelector("#zebra-smartcal").hidden = !zebra;
+  document.querySelector("#general-media-calibration").hidden = zebra;
   const brother = /\bBrother\b.*\bQL[- ](?:560|600|700|800)\b/i.test(printer.value);
   const profile = thermalPrinterProfile(printer.value);
   const maxWidth = /\b300\s*dpi\b/i.test(printer.value) ? 54 : 56;
@@ -2978,20 +3174,33 @@ stage.addEventListener("pointerdown", event => {
   finishInlineText(true);
   closePieMenu();
   const [x, y] = canvas.style.translate.split(" ").map(value => parseFloat(value) || 0);
-  panDrag = { pointerId: event.pointerId, clientX: event.clientX, clientY: event.clientY, x: x ?? 0, y: y ?? 0 };
+  panDrag = { pointerId: event.pointerId, clientX: event.clientX, clientY: event.clientY, x: x ?? 0, y: y ?? 0, background, moved: false };
   stage.setPointerCapture(event.pointerId);
-  stage.dataset.panning = "";
 }, true);
 
 stage.addEventListener("pointermove", event => {
   if (panDrag?.pointerId !== event.pointerId) return;
-  pan = { x: panDrag.x + event.clientX - panDrag.clientX, y: panDrag.y + event.clientY - panDrag.clientY };
+  const dx = event.clientX - panDrag.clientX;
+  const dy = event.clientY - panDrag.clientY;
+  if (!panDrag.moved && Math.hypot(dx, dy) < 4) return;
+  panDrag.moved = true;
+  stage.dataset.panning = "";
+  pan = { x: panDrag.x + dx, y: panDrag.y + dy };
   schedulePreview();
 });
 
 for (const type of ["pointerup", "pointercancel", "lostpointercapture"]) {
   stage.addEventListener(type, event => {
-    if (event.pointerId === panDrag?.pointerId) stopPanning();
+    if (event.pointerId !== panDrag?.pointerId) return;
+    const deselect = type === "pointerup" && panDrag.background && !panDrag.moved
+      && Math.hypot(event.clientX - panDrag.clientX, event.clientY - panDrag.clientY) < 4;
+    stopPanning();
+    if (deselect) {
+      selected = -1;
+      multiSelection.clear();
+      syncControls();
+      canvas.focus({ preventScroll: true });
+    }
   });
 }
 
@@ -3007,7 +3216,6 @@ document.querySelector("#center-label").onclick = () => {
   schedulePreview();
 };
 canvasZoom.onchange = () => {
-  stageViewport.toggleAttribute("data-zoom", Number(canvasZoom.value) > 1);
   schedulePreview();
 };
 new ResizeObserver(schedulePreview).observe(stageViewport);

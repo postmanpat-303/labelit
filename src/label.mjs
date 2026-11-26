@@ -1,7 +1,22 @@
 import bwip from "./vendor/bwip-js-gen.mjs";
 
 export const millimetresPerInch = 25.4;
-export const shapeNames = { rectangle: "Rectangle", ellipse: "Ellipse", line: "Line" };
+export const extraShapes = {
+  triangle: { name: "Triangle", symbol: "△", points: [[.5, 0], [1, 1], [0, 1]] },
+  diamond: { name: "Diamond", symbol: "◇", points: [[.5, 0], [1, .5], [.5, 1], [0, .5]] },
+  pentagon: { name: "Pentagon", symbol: "⬠", points: [[.5, 0], [1, .38], [.81, 1], [.19, 1], [0, .38]] },
+  hexagon: { name: "Hexagon", symbol: "⬡", points: [[.25, 0], [.75, 0], [1, .5], [.75, 1], [.25, 1], [0, .5]] },
+  octagon: { name: "Octagon", symbol: "⯃", points: [[.29, 0], [.71, 0], [1, .29], [1, .71], [.71, 1], [.29, 1], [0, .71], [0, .29]] },
+  star: { name: "Star", symbol: "☆", points: [[.5, 0], [.62, .35], [1, .37], [.7, .61], [.81, 1], [.5, .77], [.19, 1], [.3, .61], [0, .37], [.38, .35]] },
+  cross: { name: "Cross", symbol: "＋", points: [[.34, 0], [.66, 0], [.66, .34], [1, .34], [1, .66], [.66, .66], [.66, 1], [.34, 1], [.34, .66], [0, .66], [0, .34], [.34, .34]] },
+  arrow: { name: "Arrow", symbol: "⇨", points: [[0, .32], [.58, .32], [.58, 0], [1, .5], [.58, 1], [.58, .68], [0, .68]] },
+  chevron: { name: "Chevron", symbol: "❯", points: [[0, 0], [.52, 0], [1, .5], [.52, 1], [0, 1], [.48, .5]] },
+  trapezoid: { name: "Trapezoid", symbol: "⏢", points: [[.23, 0], [.77, 0], [1, 1], [0, 1]] }
+};
+export const shapeNames = {
+  rectangle: "Rectangle", ellipse: "Ellipse", line: "Line",
+  ...Object.fromEntries(Object.entries(extraShapes).map(([key, shape]) => [key, shape.name]))
+};
 
 const alphabet = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ-. $/+%*";
 // Code 39 symbol patterns. Each set bit marks one wide bar or space.
@@ -155,12 +170,21 @@ export function drawLabel(context, label, width, height, images) {
       context.save();
       context.strokeStyle = "#111";
       context.lineWidth = stroke;
+      context.lineJoin = "round";
       context.beginPath();
       if (element.shape === "ellipse") {
         context.ellipse(x + w / 2, y + h / 2, w / 2 - inset, h / 2 - inset, 0, 0, Math.PI * 2);
       } else if (element.shape === "line") {
         context.moveTo(x + inset, y + inset);
         context.lineTo(x + w - inset, y + h - inset);
+      } else if (Object.hasOwn(extraShapes, element.shape)) {
+        extraShapes[element.shape].points.forEach(([px, py], index) => {
+          const pointX = x + inset + px * (w - stroke);
+          const pointY = y + inset + py * (h - stroke);
+          if (index === 0) context.moveTo(pointX, pointY);
+          else context.lineTo(pointX, pointY);
+        });
+        context.closePath();
       } else {
         context.rect(x + inset, y + inset, w - stroke, h - stroke);
       }

@@ -6,6 +6,8 @@ mod print_job;
 mod printing;
 #[cfg(windows)]
 mod windows_print;
+#[cfg(windows)]
+mod windows_export;
 #[cfg(target_os = "linux")]
 mod linux_shortcuts;
 
@@ -29,6 +31,7 @@ fn main() {
         .manage(printing::CsvBatches::default())
         .invoke_handler(tauri::generate_handler![
             desktop_platform,
+            windows_export::save_export,
             printing::list_printers,
             printing::open_device_settings,
             printing::open_project_documentation,
