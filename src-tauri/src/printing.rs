@@ -19,6 +19,8 @@ pub fn open_device_settings(bluetooth: bool) -> Result<(), String> {
 #[tauri::command]
 pub fn open_project_documentation(project: &str) -> Result<(), String> {
     let url = match project {
+        "labelit" => "https://github.com/postmanpat-303/labelit",
+        "coffee" => "https://buymeacoffee.com/postmanpat",
         "niimgo" => "https://github.com/thedemons/niimgo",
         "niimprintx" => "https://github.com/niimbot/niimprintx",
         "lprint" => "https://github.com/michaelrsweet/lprint",

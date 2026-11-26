@@ -1,0 +1,130 @@
+name: Publish stable release
+
+on:
+  push:
+    branches: [main]
+    paths: [src-tauri/tauri.conf.json, .github/workflows/stable-release.yml]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: labelit-stable-release
+  cancel-in-progress: false
+
+jobs:
+  windows:
+    runs-on: windows-latest
+    timeout-minutes: 35
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+      - uses: msys2/setup-msys2@v2
+        with:
+          msystem: MINGW64
+          path-type: inherit
+          install: mingw-w64-x86_64-gcc
+      - name: Build Windows x64
+        shell: msys2 {0}
+        run: |
+          rustup target add x86_64-pc-windows-gnu
+          node build-frontend.mjs
+          cargo build --release --locked --manifest-path src-tauri/Cargo.toml --features custom-protocol --target x86_64-pc-windows-gnu
+      - name: Package Windows installer
+        shell: pwsh
+        run: |
+          New-Item -ItemType Directory -Force src-tauri/target/release | Out-Null
+          $built = 'src-tauri/target/x86_64-pc-windows-gnu/release'
+          Copy-Item "$built/labelit.exe", "$built/WebView2Loader.dll" src-tauri/target/release
+          choco install nsis -y --no-progress
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          $nsis = Join-Path ${env:ProgramFiles(x86)} 'NSIS/makensis.exe'
+          ./packaging/package-windows.ps1 -Makensis $nsis
+      - uses: actions/upload-artifact@v4
+        with:
+          name: windows
+          path: src-tauri/target/release/Label-IT-*-windows-x64-setup.exe
+          if-no-files-found: error
+
+  linux:
+    runs-on: ubuntu-latest
+    timeout-minutes: 35
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build Debian 12 compatible packages
+        run: |
+          docker build -f packaging/linux-bookworm.Dockerfile -t labelit-release .
+          mkdir packages
+          docker run --rm --mount "type=bind,source=$PWD/packages,target=/output" labelit-release cp -a /packages/. /output/
+      - uses: actions/upload-artifact@v4
+        with:
+          name: linux
+          path: |
+            packages/*.deb
+            packages/*.tar.gz
+          if-no-files-found: error
+
+  macos:
+    runs-on: macos-latest
+    timeout-minutes: 40
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+      - name: Build and verify universal DMG
+        env:
+          APPLE_SIGNING_IDENTITY: '-'
+        run: |
+          rustup target add aarch64-apple-darwin x86_64-apple-darwin
+          npx --yes @tauri-apps/cli@2 icon src-tauri/icons/icon.png --output "$RUNNER_TEMP/labelit-icons"
+          cp "$RUNNER_TEMP/labelit-icons/icon.icns" src-tauri/icons/icon.icns
+          npx --yes @tauri-apps/cli@2 build --target universal-apple-darwin --bundles dmg --ci -- --locked
+          dmg=(src-tauri/target/universal-apple-darwin/release/bundle/dmg/*.dmg)
+          mount_dir="$(mktemp -d)"
+          hdiutil attach "${dmg[0]}" -readonly -nobrowse -mountpoint "$mount_dir"
+          trap 'hdiutil detach "$mount_dir"' EXIT
+          app="$mount_dir/Label-IT.app/Contents"
+          executable=$(/usr/libexec/PlistBuddy -c 'Print :CFBundleExecutable' "$app/Info.plist")
+          lipo "$app/MacOS/$executable" -verify_arch arm64 x86_64
+          version="$(jq -r .version src-tauri/tauri.conf.json)"
+          mkdir packages
+          cp "${dmg[0]}" "packages/Label-IT-$version-macOS-universal.dmg"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: macos
+          path: packages/*.dmg
+          if-no-files-found: error
+
+  publish:
+    needs: [windows, linux, macos]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/download-artifact@v4
+        with:
+          path: packages
+          merge-multiple: true
+      - name: Publish stable release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          version="$(jq -r .version src-tauri/tauri.conf.json)"
+          test -s "packages/Label-IT-$version-windows-x64-setup.exe"
+          test -s "packages/label-it_${version}_amd64.deb"
+          test -s "packages/Label-IT-$version-linux-x86_64.tar.gz"
+          test -s "packages/Label-IT-$version-macOS-universal.dmg"
+          (cd packages && sha256sum *.exe *.deb *.tar.gz *.dmg > SHA256SUMS.txt)
+          gh release create "v$version" packages/* --target "$GITHUB_SHA" --title "Label-IT $version" --latest --notes-file - <<'NOTES'
+          - Search 19 Avery A4 layouts, including J8165-100. Frequently used stock moves to the top.
+          - Preview and print one label, fill a sheet, or number labels across sheets. Skip positions already used and export actual-size colour PDFs.
+          - Open the browser editor on a trusted local network with `node serve.mjs --lan`.
+          - Find the app version, design file format, project links, and simplified Credits in Help.
+
+          Windows uses an unsigned installer. The universal macOS DMG is ad-hoc signed. Browser designs are stored per browser profile.
+          NOTES

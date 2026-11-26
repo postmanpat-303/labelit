@@ -33,6 +33,16 @@ Loose ideas, roughly grouped. Nothing here is committed; this is the floating-id
 - Template gallery: shipping, address, barcode/SKU, name badge, jar/round, file-folder spine, cable flag
 - **Sheet imposition:** same design, N-up on Avery sheets via PDF export (borrow geometry math from pylabels)
 
+### New feature brief — Standard inkjet label sheets
+
+- Add a **Standard inkjet labels** section to the existing **Label stock** setup. Let users search an Avery stock database by template code, pack SKU, label dimensions, or sheet format.
+- Include **Avery J8165-100** as the first required preset. It uses template **J8165**, with **eight labels on an A4 sheet**. Show the retail dimensions as **99.1 × 67.7 mm** and use Avery’s more precise **99.06 × 67.73 mm** dimensions for layout. [Avery product specification](https://www.avery.co.uk/product/parcel-labels-quickdrytm-inkjet-printable-991-x-677-mm-white-800-labels-j8165-100-j8165-100) · [Avery J8165 template](https://www.avery.co.uk/template-j8165)
+- Store the sheet size, row and column counts, starting margins, and horizontal and vertical pitch per template. Verify all geometry against the manufacturer’s template. Pack sizes that share a template should resolve to the same layout.
+- Selecting a preset should set the canvas to one label and load the matching sheet layout. Show all label positions in the sheet preview and export an exact-size A4 PDF for printing at **Actual size / 100%**.
+- Offer three sheet print modes: **Single label** prints at a position picked in the sheet preview, **Fill sheet** repeats the same design, and **Sequential numbering** prints a different number on each label. Let users skip positions already used on a partly printed sheet.
+- In sequential mode, suggest numeric portions of existing text, such as `POSITION 004`. Let users confirm the field and set the starting number, increment, and quantity. Preserve leading zeros and surrounding text. Preview the numbers in print order and continue the sequence across sheets when needed.
+- Acceptance checks for J8165-100: either code finds the preset, single-label mode leaves the other seven positions blank, fill mode places eight copies on a fresh sheet, and sequential mode produces `POSITION 004` through `POSITION 011` with start 4 and step 1. The PDF matches the preview, and a 100% test print aligns with the top and bottom rows of the physical sheet.
+
 ## Printing
 
 - **Direct I/O, no drivers:** raw USB, BLE, network (port 9100). Tauri/Rust core: `rusb`, `btleplug`, sockets.

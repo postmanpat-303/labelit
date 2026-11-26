@@ -33,7 +33,12 @@
   <details class="header-menu" id="help-menu">
     <summary>Help</summary>
     <div class="file-actions">
-      <button type="button" id="open-source-credits">Open-source credits</button>
+      <button type="button" id="open-about">About Label-IT</button>
+      <button type="button" id="open-source-credits">Credits</button>
+      <a data-project="labelit" href="https://github.com/postmanpat-303/labelit" target="_blank" rel="noopener noreferrer">GitHub repository</a>
+      <a class="coffee-badge" data-project="coffee" href="https://buymeacoffee.com/postmanpat" target="_blank" rel="noopener noreferrer">
+        <img src="https://cdn.buymeacoffee.com/buttons/v2/default-yellow.png" width="145" height="40" alt="Buy Me a Coffee">
+      </a>
       <button type="button" id="linux-shortcuts-open" hidden>Desktop shortcuts</button>
     </div>
   </details>
@@ -196,6 +201,7 @@
       <label>Media <select id="media-mode">
         <option value="label">Individual labels</option>
         <option value="sheet">Label or card sheet</option>
+        <option value="inkjet">Avery A4 labels</option>
         <option value="continuous">Continuous roll</option>
       </select></label>
       <p id="roll-help" class="setting-note" hidden>Set the roll width and enter the desired print length in Height. Select continuous media in the printer driver.</p>
@@ -267,6 +273,12 @@
 </div>
 <label>Design resolution <select id="dpi"><option value="203">203 dpi</option><option value="300">300 dpi</option></select></label>
 </details>
+      <div id="inkjet-stock" class="sub-card" hidden>
+        <label>Search Avery stock <input id="inkjet-search" type="search" placeholder="Code or dimensions, e.g. L7165" autocomplete="off"></label>
+        <label>Template <select id="inkjet-template"></select></label>
+        <p id="inkjet-stock-summary" class="setting-note"></p>
+        <button id="inkjet-open" type="button">Open sheet print</button>
+      </div>
       <form id="sheet-layout" class="sub-card" hidden>
         <label>Paper <select name="paper"><option value="a4">A4</option><option value="letter">US Letter</option></select></label>
         <div class="dimensions">
@@ -380,78 +392,30 @@
     <p class="setting-note">Find Label-IT in your application menu and right-click it. On GNOME, choose Add to Favorites or Pin to Dash. On KDE Plasma, choose Pin to Task Manager. Other desktops may call it Add to Panel.</p>
   </details>
 </dialog>
-<dialog id="credits-dialog" aria-labelledby="credits-title">
+<dialog id="about-dialog" aria-labelledby="about-title">
   <div class="dialog-header">
-    <h2 id="credits-title">Open-source credits</h2>
+    <h2 id="about-title">About Label-IT</h2>
     <form method="dialog"><button type="submit">Close</button></form>
   </div>
-  <p class="credits-intro">Thank you to the maintainers who build and share the tools that help Label-IT design and print labels.</p>
-  <section class="credits-section credits-origin" aria-labelledby="credits-glabels">
-    <h3 id="credits-glabels">A tribute to gLabels, from 2001 to today</h3>
-    <p>Thank you to founder Jaye Evins, credited as Jim Evins in the original project, and to the developers, translators, documentation writers, template contributors, and testers who made gLabels possible. The project’s stock templates and data merge helped inspire Label-IT.</p>
-    <p>Mario Blättermann maintained documentation and internationalization. Austin Henry contributed the Evolution Data Server and vCard backends. Samual Lown and Robin Stuart worked on Zint barcode support.</p>
-    <p><a data-project="glabels-team" href="https://github.com/j-evins/glabels-gtk/blob/master/AUTHORS" target="_blank" rel="noopener noreferrer">GNOME project acknowledgments</a> · <a data-project="glabels-qt-team" href="https://github.com/j-evins/glabels-qt/blob/master/CREDITS.md" target="_blank" rel="noopener noreferrer">Qt project credits</a></p>
-    <figure class="credits-quote">
-      <blockquote>“drop my text and graphical elements as objects onto a prototype label or card and have fine control over their placement.”</blockquote>
-      <figcaption>gLabels founder, describing the editor he wanted to build in a <a data-project="glabels-interview" href="https://sourceforge.net/blog/glabels-lets-you-make-labels-with-style/" target="_blank" rel="noopener noreferrer">2009 SourceForge interview</a>.</figcaption>
-    </figure>
-    <ol class="credits-timeline">
-      <li><time datetime="2001">2001</time><p>gLabels begins as a GNOME tool for laying out labels and business cards.</p></li>
-      <li><time datetime="2009">2009</time><p>The 2.2 series supports CSV data merge and command-line batch printing.</p></li>
-      <li><time datetime="2011-05-16">2011</time><p>gLabels 3 reaches its first stable release after the move to GTK 3 and GNOME 3. <a data-project="glabels-news" href="https://github.com/j-evins/glabels-gtk/blob/master/NEWS" target="_blank" rel="noopener noreferrer">Release history</a></p></li>
-      <li><time datetime="2018">2018</time><p>Upstream maintenance of gLabels 3 ends. Linux distributions continue to package the classic editor.</p></li>
-      <li><strong>Today · gLabels 4 development</strong><p>A Qt 6 rewrite introduces a new layout, cross-platform support, continuous-roll stock, and user-defined variables. <a data-project="glabels" href="https://github.com/j-evins/glabels-qt" target="_blank" rel="noopener noreferrer">gLabels on Qt</a></p></li>
-    </ol>
-    <p>The familiar workflow carries through the project’s history. Choose stock, place text and graphics on a label, and print copies or merge records from a data source.</p>
-    <div class="credits-gallery">
-      <figure><img src="./references/glabels/introduction-glabels-main-window.png" width="790" height="655" alt="The gLabels 3 GNOME editor with a label on the canvas"><figcaption>Classic GNOME editor · gLabels 3</figcaption></figure>
-      <figure><img src="./references/glabels/print-merge.png" width="675" height="393" alt="The gLabels print dialog with merge controls and sheet preview"><figcaption>gLabels 3 merge printing</figcaption></figure>
-    </div>
-    <p class="credits-caption">Images from the gLabels GTK manual, reproduced unmodified under <a data-project="glabels-docs-license" href="https://github.com/j-evins/glabels-gtk/blob/master/COPYING.README_FIRST#documentation" target="_blank" rel="noopener noreferrer">CC BY-SA 3.0</a>.</p>
-  </section>
-  <section class="credits-section credits-origin credits-label-it" aria-labelledby="credits-label-it">
-    <h3 id="credits-label-it">The Label-IT story</h3>
-    <p class="credits-quote"><strong>Our vision</strong><br>Make it easy to go from a blank label to a finished print in minutes on Windows, macOS, and Linux. Pick your printer, see which label sizes fit, design at actual size, and print with a preview you can trust.</p>
-    <ol class="credits-timeline">
-      <li><time datetime="2026-11-18">18 Nov 2026</time><p>The first prototype puts labels on a millimetre-scale canvas for direct printing.</p></li>
-      <li><time datetime="2026-11-20">20 Nov 2026</time><p>A Zebra ZD410 prints a full-height 50 × 30 mm label. The first Linux package brings the editor to Ubuntu.</p></li>
-      <li><strong>November 2026 builds</strong><p>The editor gains a PIE menu, stock and printer matching, live calibration and saved offsets, a design library, CSV batch printing, and gLabels 3 and 4 design import.</p></li>
-    </ol>
-    <div class="credits-gallery">
-      <figure><img src="./references/label-it/thermal-raster-test.png" alt="An early Label-IT build with a full-label grayscale raster test and stock settings"><figcaption>Early full-label thermal raster test</figcaption></figure>
-      <figure><img src="./references/label-it/printer-welcome.png" alt="Label-IT welcome dialog for choosing an installed printer"><figcaption>Printer setup on first launch</figcaption></figure>
-    </div>
-  </section>
-  <section class="credits-section">
-    <h3>Used in Label-IT</h3>
-    <dl>
-      <dt><a data-project="tauri" href="https://github.com/tauri-apps/tauri" target="_blank" rel="noopener noreferrer">Tauri</a></dt>
-      <dd>Desktop app framework.</dd>
-      <dt><a data-project="bwip-js" href="https://github.com/metafloor/bwip-js" target="_blank" rel="noopener noreferrer">bwip-js</a> and <a data-project="bwipp" href="https://github.com/bwipp/postscriptbarcode" target="_blank" rel="noopener noreferrer">BWIPP</a></dt>
-      <dd>Barcode rendering by Mark Warren, Terry Burton, and contributors. The bundled source traces BWIPP to <time datetime="2004">2004</time> and bwip-js to <time datetime="2011">2011</time>. The font code also credits Sean Barrett’s stb_truetype.</dd>
-      <dt><a data-project="inconsolata" href="https://github.com/googlefonts/Inconsolata" target="_blank" rel="noopener noreferrer">Inconsolata</a></dt>
-      <dd>Raph Levien’s monospaced font, dated <time datetime="2006">2006</time> in the upstream credits. Bundled with the barcode library under the SIL Open Font License.</dd>
-      <dt>Rust libraries</dt>
-      <dd><a data-project="tempfile" href="https://github.com/Stebalien/tempfile" target="_blank" rel="noopener noreferrer">tempfile</a> stages print batches. <a data-project="windows-rs" href="https://github.com/microsoft/windows-rs" target="_blank" rel="noopener noreferrer">windows-sys</a> provides the Windows API bindings.</dd>
-    </dl>
-    <p class="credits-licenses"><a href="./src/vendor/BWIP-JS-LICENSE.txt" download>Barcode library licence</a> · <a href="./src/vendor/INCONSOLATA-LICENSE.txt" download>Inconsolata licence</a></p>
-  </section>
-  <section class="credits-section">
-    <h3>Design and printing references</h3>
-    <p><a data-project="thermoprint" href="https://github.com/tomLadder/thermoprint" target="_blank" rel="noopener noreferrer">thermoprint</a> informed the separation of rendering and printing. <a data-project="niimblue" href="https://github.com/MultiMote/niimblue" target="_blank" rel="noopener noreferrer">NiimBlue</a> and <a data-project="brother-ql" href="https://github.com/pklaus/brother_ql" target="_blank" rel="noopener noreferrer">brother_ql</a> provide device-protocol references.</p>
-  </section>
-  <section class="credits-section">
-    <h3>Community printer projects</h3>
-    <p>Explore the projects referenced in <strong>Add label printer</strong>.</p>
-    <ul class="credits-projects">
-      <li><a data-project="openprinting" href="https://openprinting.github.io/cups/drivers.html" target="_blank" rel="noopener noreferrer">OpenPrinting</a></li>
-      <li><a data-project="lprint" href="https://github.com/michaelrsweet/lprint" target="_blank" rel="noopener noreferrer">LPrint</a></li>
-      <li><a data-project="niimgo" href="https://github.com/thedemons/niimgo" target="_blank" rel="noopener noreferrer">niimgo</a></li>
-      <li><a data-project="niimprintx" href="https://github.com/niimbot/niimprintx" target="_blank" rel="noopener noreferrer">NiimPrintX</a></li>
-      <li><a data-project="phomemo-tools" href="https://github.com/vivier/phomemo-tools" target="_blank" rel="noopener noreferrer">phomemo-tools</a></li>
-      <li><a data-project="phomymo" href="https://github.com/transcriptionstream/phomymo" target="_blank" rel="noopener noreferrer">Phomymo</a></li>
-    </ul>
-  </section>
+  <p>Design and print labels, barcodes, and cards at actual size.</p>
+  <dl class="about-details">
+    <dt>App version</dt><dd id="about-version">Loading…</dd>
+    <dt>Design file format</dt><dd id="about-file-version"></dd>
+  </dl>
+</dialog>
+<dialog id="credits-dialog" aria-labelledby="credits-title">
+  <div class="dialog-header">
+    <h2 id="credits-title">Credits</h2>
+    <form method="dialog"><button type="submit">Close</button></form>
+  </div>
+  <ul class="credits-list">
+    <li><a data-project="glabels" href="https://github.com/j-evins/glabels-qt" target="_blank" rel="noopener noreferrer">gLabels on Qt</a> · Label design inspiration, import and Avery sheet geometry · <a data-project="glabels-team" href="https://github.com/j-evins/glabels-gtk/blob/master/AUTHORS" target="_blank" rel="noopener noreferrer">GNOME project acknowledgments</a> · <a data-project="glabels-qt-team" href="https://github.com/j-evins/glabels-qt/blob/master/CREDITS.md" target="_blank" rel="noopener noreferrer">Qt project credits</a></li>
+    <li><a data-project="tauri" href="https://github.com/tauri-apps/tauri" target="_blank" rel="noopener noreferrer">Tauri</a> · Desktop framework</li>
+    <li><a data-project="bwip-js" href="https://github.com/metafloor/bwip-js" target="_blank" rel="noopener noreferrer">bwip-js</a> and <a data-project="bwipp" href="https://github.com/bwipp/postscriptbarcode" target="_blank" rel="noopener noreferrer">BWIPP</a> · Barcodes · <a href="./src/vendor/BWIP-JS-LICENSE.txt" download>Licence</a></li>
+    <li><a data-project="inconsolata" href="https://github.com/googlefonts/Inconsolata" target="_blank" rel="noopener noreferrer">Inconsolata</a> · Bundled font · <a href="./src/vendor/INCONSOLATA-LICENSE.txt" download>Licence</a></li>
+    <li><a data-project="tempfile" href="https://github.com/Stebalien/tempfile" target="_blank" rel="noopener noreferrer">tempfile</a> and <a data-project="windows-rs" href="https://github.com/microsoft/windows-rs" target="_blank" rel="noopener noreferrer">windows-sys</a> · Desktop printing</li>
+    <li><a data-project="thermoprint" href="https://github.com/tomLadder/thermoprint" target="_blank" rel="noopener noreferrer">thermoprint</a>, <a data-project="niimblue" href="https://github.com/MultiMote/niimblue" target="_blank" rel="noopener noreferrer">NiimBlue</a>, <a data-project="brother-ql" href="https://github.com/pklaus/brother_ql" target="_blank" rel="noopener noreferrer">brother_ql</a>, <a data-project="openprinting" href="https://openprinting.github.io/cups/drivers.html" target="_blank" rel="noopener noreferrer">OpenPrinting</a>, <a data-project="lprint" href="https://github.com/michaelrsweet/lprint" target="_blank" rel="noopener noreferrer">LPrint</a>, <a data-project="niimgo" href="https://github.com/thedemons/niimgo" target="_blank" rel="noopener noreferrer">niimgo</a>, <a data-project="niimprintx" href="https://github.com/niimbot/niimprintx" target="_blank" rel="noopener noreferrer">NiimPrintX</a>, <a data-project="phomemo-tools" href="https://github.com/vivier/phomemo-tools" target="_blank" rel="noopener noreferrer">phomemo-tools</a>, <a data-project="phomymo" href="https://github.com/transcriptionstream/phomymo" target="_blank" rel="noopener noreferrer">Phomymo</a> · Printer references</li>
+  </ul>
   <p id="credits-status" class="setting-note" role="status"></p>
 </dialog>
 <dialog id="printer-welcome" aria-labelledby="printer-welcome-title">
@@ -615,5 +579,52 @@
     <button type="button" class="pie-hub" role="menuitem" aria-label="Back" disabled>Actions</button>
   </div>
 </template>
+<dialog id="inkjet-dialog" aria-labelledby="inkjet-title">
+  <header class="dialog-header">
+    <h2 id="inkjet-title">Sheet print</h2>
+    <div class="inkjet-actions">
+      <button id="inkjet-export" type="button">Export PDF</button>
+      <button id="inkjet-print" type="button">Print sheet</button>
+      <form method="dialog"><button aria-label="Close sheet print">Close</button></form>
+    </div>
+  </header>
+  <div class="inkjet-workspace">
+    <section class="inkjet-sidebar">
+      <h3>Label stock</h3>
+      <p id="inkjet-paper-details"></p>
+      <fieldset id="inkjet-modes">
+        <legend>Print mode</legend>
+        <label><input name="inkjet-mode" type="radio" value="single" checked> Single label</label>
+        <label><input name="inkjet-mode" type="radio" value="fill"> Fill sheet</label>
+        <label><input name="inkjet-mode" type="radio" value="sequence"> Sequential numbering</label>
+      </fieldset>
+    </section>
+    <section class="inkjet-preview" aria-label="Sheet preview">
+      <div id="inkjet-page" class="inkjet-page"></div>
+      <div class="inkjet-page-nav">
+        <button id="inkjet-prev" type="button" aria-label="Previous sheet">‹</button>
+        <span id="inkjet-page-count" aria-live="polite"></span>
+        <button id="inkjet-next" type="button" aria-label="Next sheet">›</button>
+      </div>
+    </section>
+    <section class="inkjet-sidebar">
+      <div id="inkjet-numbering" hidden>
+        <h3>Numbering</h3>
+        <label>Detected field <select id="inkjet-field"></select></label>
+        <div class="dimensions">
+          <label>Start <input id="inkjet-start" inputmode="numeric" maxlength="32" value="1"></label>
+          <label>Increment <input id="inkjet-step" inputmode="numeric" maxlength="12" value="1"></label>
+          <label>Quantity <input id="inkjet-quantity" type="number" min="1" max="300" value="8"></label>
+        </div>
+      </div>
+      <h3>Sheet positions</h3>
+      <p id="inkjet-position-help" class="setting-note"></p>
+      <label id="inkjet-mark-option"><input type="checkbox" id="inkjet-mark-used"> Mark used positions</label>
+      <p id="inkjet-status" class="setting-note" role="status"></p>
+      <p class="setting-note">Print on A4 at Actual size (100%).</p>
+    </section>
+  </div>
+</dialog>
+<div id="inkjet-print-pages" aria-hidden="true"></div>
 </body>
 </html>

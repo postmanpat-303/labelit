@@ -16,7 +16,7 @@ export function readDesignEntry(entry, index = 0) {
   const design = entry?.label;
   if (typeof entry?.name !== "string" || !entry.name.trim() || !within(design?.width, 5, 220)
       || !within(design?.height, 5, 300) || ![203, 300].includes(design?.dpi)
-      || (design.media !== undefined && !["label", "sheet", "continuous"].includes(design.media))
+      || (design.media !== undefined && !["label", "sheet", "inkjet", "continuous"].includes(design.media))
       || (design.cornerRadius !== undefined && !within(design.cornerRadius, 0, 110))
       || !Array.isArray(design?.elements)) {
     throw new Error(`Design ${index + 1} has invalid dimensions or contents.`);

@@ -4,8 +4,9 @@ import { historyEntries, rememberJob } from "./print-history.mjs";
 import { cornerRadius, finishPrintRaster, insideStock, previewOnStock, printTone } from "./print-raster.mjs";
 import { thermalPrinterProfile } from "./thermal-printers.mjs";
 import { readGlabelsDesign } from "./glabels-import.mjs";
+import { inkjetStocks, numberedDesign, numberedFields, planInkjetSheets, searchInkjetStocks, stockPositions } from "./inkjet-sheets.mjs";
 import { barcodeAtResolution, barcodeNames, drawLabel, makePdf, millimetresPerInch, elementBounds, isBarcodeValue,
-  extraShapes, layoutText, normaliseBarcode, shapeNames, sheetLayout, textFontFamily } from "./label.mjs";
+  extraShapes, layoutText, makeSheetPdf, normaliseBarcode, shapeNames, sheetLayout, textFontFamily } from "./label.mjs";
 
 const controls = Object.fromEntries(
   ["undo", "redo", "export", "print", "preset", "width", "height", "dpi", "add", "remove",
@@ -18,11 +19,19 @@ const controls = Object.fromEntries(
 );
 const mediaMode = document.querySelector("#media-mode");
 const sheetForm = document.querySelector("#sheet-layout");
+const inkjet = Object.fromEntries([
+  "stock", "search", "template", "stock-summary", "open", "dialog", "paper-details", "modes",
+  "page", "prev", "next", "page-count", "numbering", "field", "start", "step", "quantity",
+  "position-help", "mark-option", "mark-used", "status", "export", "print", "print-pages"
+].map(name => [name, document.getElementById(`inkjet-${name}`)]));
+let inkjetJob;
 const shapeHeight = document.querySelector("#shape-height");
 const paperSizes = { a4: { width: 210, height: 297 }, letter: { width: 215.9, height: 279.4 } };
 
 const storageKey = "labelit-library-v1";
 const legacyKey = "labelit-design-v1";
+const designFileVersion = 1;
+const inkjetUsageKey = "labelit-avery-template-usage";
 const startingLabel = {
   width: 62, height: 29, dpi: 203,
   elements: [{ text: "Your label", x: 4, y: 4, size: 5 }]
@@ -264,11 +273,17 @@ function syncControls() {
   controls.preset.value = Array.from(controls.preset.options).some(option => option.value === dimensions)
     ? dimensions : "custom";
   mediaMode.value = label.media ?? "label";
+  const isInkjet = mediaMode.value === "inkjet";
+  inkjet.stock.hidden = !isInkjet;
+  controls.preset.closest("label").hidden = isInkjet;
+  controls.width.readOnly = controls.height.readOnly = isInkjet;
+  if (isInkjet) syncInkjetStock();
   sheetForm.hidden = mediaMode.value !== "sheet";
   document.querySelector("#roll-help").hidden = mediaMode.value !== "continuous";
   document.querySelector("#media-calibration").hidden = mediaMode.value !== "label";
-  document.querySelector("#csv-open").hidden = !invoke || mediaMode.value === "sheet";
-  controls.print.textContent = mediaMode.value === "sheet" ? "Export sheet PDF" : "Print";
+  document.querySelector("#csv-open").hidden = !invoke || mediaMode.value === "sheet" || isInkjet;
+  controls.print.hidden = !invoke && !isInkjet;
+  controls.print.textContent = isInkjet ? "Sheet print" : mediaMode.value === "sheet" ? "Export sheet PDF" : "Print";
   const gap = mediaMode.value === "label" ? controls.preset.selectedOptions[0].dataset.gap : undefined;
   if (!sheetForm.hidden) updateSheetFit();
   stockGap.hidden = !gap;
@@ -796,7 +811,7 @@ libraryControl("design-share").onclick = async event => {
   try {
     finishInlineText(true);
     const { name, folder, tags } = library.designs[library.active];
-    const design = { format: "labelit-design", version: 1, design: { name, folder, tags, label } };
+    const design = { format: "labelit-design", version: designFileVersion, design: { name, folder, tags, label } };
     const saved = await saveExport(`${fileName(name)}.labelit`,
       new Blob([JSON.stringify(design)], { type: "application/json" }));
     controls.status.textContent = saved ? "Design exported." : "Design export cancelled.";
@@ -808,7 +823,7 @@ libraryControl("design-share").onclick = async event => {
 };
 
 importLibraryFile("design-import", "design-import-file", file => {
-  if (file?.format !== "labelit-design" || file.version !== 1) throw new Error("Choose an editable Label-IT design file.");
+  if (file?.format !== "labelit-design" || file.version !== designFileVersion) throw new Error("Choose an editable Label-IT design file.");
   const { name, label: design, folder, tags } = readDesignEntry(file.design);
   createDesign(name, design, { folder, tags });
 });
@@ -1013,6 +1028,7 @@ mediaMode.onchange = () => {
   change(() => {
     label.media = mediaMode.value;
     if (label.media === "continuous") label.cornerRadius = 0;
+    if (label.media === "inkjet") applyInkjetStock(activeInkjetStock());
   });
   if (label.media === "continuous") {
     document.querySelector("#stock-options").open = true;
@@ -2167,7 +2183,287 @@ async function saveExport(filename, file) {
   return true;
 }
 
+async function compressPdfRaster(canvas, design, color = false) {
+  const { width, height } = canvas;
+  const { data } = color ? canvas.getContext("2d").getImageData(0, 0, width, height)
+    : finishPrintRaster(canvas, design, { x: 0, y: 0 }, "driver");
+  const pixels = new Uint8Array(width * height * (color ? 3 : 1));
+  for (let channel = 0, offset = 0; channel < data.length; channel += 4) {
+    if (color) {
+      pixels[offset++] = data[channel];
+      pixels[offset++] = data[channel + 1];
+      pixels[offset++] = data[channel + 2];
+    } else {
+      pixels[offset++] = Math.round(0.2126 * data[channel] + 0.7152 * data[channel + 1] + 0.0722 * data[channel + 2]);
+    }
+  }
+  const stream = new Blob([pixels]).stream().pipeThrough(new CompressionStream("deflate"));
+  return new Uint8Array(await new Response(stream).arrayBuffer());
+}
+
+function activeInkjetStock() {
+  return inkjetStocks.find(stock => stock.id === label.sheetTemplate) ?? inkjetStocks[0];
+}
+
+function applyInkjetStock(stock) {
+  Object.assign(label, { sheetTemplate: stock.id, width: stock.labelWidth, height: stock.labelHeight, cornerRadius: 0 });
+}
+
+function readInkjetUsage() {
+  try {
+    const usage = JSON.parse(localStorage.getItem(inkjetUsageKey));
+    return usage && typeof usage === "object" && !Array.isArray(usage) ? usage : {};
+  } catch {
+    return {};
+  }
+}
+
+function syncInkjetStock() {
+  const active = activeInkjetStock();
+  const matches = searchInkjetStocks(inkjet.search.value, readInkjetUsage());
+  inkjet.template.replaceChildren(...matches.map(stock => new Option(`${stock.name} · ${stock.size}`, stock.id)));
+  if (!matches.some(stock => stock.id === active.id)) {
+    inkjet.template.prepend(new Option(matches.length ? "Select matching stock" : "No matching Avery stock", ""));
+  }
+  inkjet.template.value = matches.some(stock => stock.id === active.id) ? active.id : "";
+  inkjet.template.disabled = !matches.length;
+  inkjet["stock-summary"].textContent = `${active.name} · ${active.paper} · ${active.columns * active.rows} labels per sheet`;
+}
+
+inkjet.search.oninput = syncInkjetStock;
+inkjet.template.onchange = () => {
+  const stock = inkjetStocks.find(item => item.id === inkjet.template.value);
+  if (stock && stock.id !== label.sheetTemplate) change(() => applyInkjetStock(stock));
+};
+
+function openInkjetSheet() {
+  if (inkjet.dialog.open) return;
+  finishInlineText(true);
+  const stock = activeInkjetStock();
+  const design = { ...structuredClone(currentDesign()), width: stock.labelWidth, height: stock.labelHeight, cornerRadius: 0 };
+  const fields = numberedFields(design);
+  inkjetJob = { stock, design, fields, positions: stockPositions(stock), selected: 0, used: new Set(),
+    page: 0, images: new Map(), busy: false };
+  const job = inkjetJob;
+  inkjet["paper-details"].textContent = `${stock.name} · ${stock.paper} · ${job.positions.length} labels · ${stock.size}`;
+  inkjet.field.replaceChildren(...fields.map((field, index) => {
+    const name = field.text.slice(0, field.start) + "[" + field.digits + "]" + field.text.slice(field.start + field.digits.length);
+    return new Option(`Text ${field.index + 1} · ${name}`, index);
+  }));
+  if (!fields.length) inkjet.field.add(new Option("No numbers found in label text", ""));
+  inkjet.field.disabled = !fields.length;
+  inkjet.start.value = fields[0]?.digits ?? "1";
+  inkjet.step.value = "1";
+  inkjet.quantity.value = job.positions.length;
+  inkjet.modes.querySelector('[value="single"]').checked = true;
+  inkjet["mark-used"].checked = false;
+  inkjet.dialog.showModal();
+  try {
+    const usage = readInkjetUsage();
+    const count = usage[stock.id];
+    usage[stock.id] = Number.isSafeInteger(count) && count > 0 ? Math.min(count + 1, Number.MAX_SAFE_INTEGER) : 1;
+    localStorage.setItem(inkjetUsageKey, JSON.stringify(usage));
+  } catch {
+    // Sheet printing still works when local storage is unavailable.
+  }
+  syncInkjetStock();
+  loadImages(design, job.images, () => {
+    if (inkjetJob === job && inkjet.dialog.open) updateInkjetPreview();
+  });
+  updateInkjetPreview();
+}
+
+function inkjetPlan() {
+  const { design, fields, positions, used, selected } = inkjetJob;
+  const mode = inkjet.modes.querySelector(":checked").value;
+  if (mode !== "sequence") {
+    return { pages: planInkjetSheets(positions, used, mode, selected, 1), designAt: () => design };
+  }
+  const field = fields[inkjet.field.selectedIndex];
+  const start = inkjet.start.value.trim();
+  const step = inkjet.step.value.trim();
+  const quantity = inkjet.quantity.valueAsNumber;
+  if (!field) throw new Error("Add a number to a text box on the label to use sequential numbering.");
+  if (!/^\d{1,32}$/.test(start) || !/^\d{1,12}$/.test(step) || Number(step) < 1) {
+    throw new Error("Enter a whole starting number and an increment of at least 1.");
+  }
+  if (!Number.isInteger(quantity) || !inkjet.quantity.validity.valid) {
+    throw new Error(`Enter a quantity from 1 to ${inkjet.quantity.max}.`);
+  }
+  return {
+    pages: planInkjetSheets(positions, used, mode, selected, quantity),
+    designAt: index => numberedDesign(design, field, start, step, index)
+  };
+}
+
+function positionInkjetLabel(node, stock, position, unit) {
+  const relative = unit === "%";
+  node.style.left = `${relative ? position.x / stock.width * 100 : position.x}${unit}`;
+  node.style.top = `${relative ? position.y / stock.height * 100 : position.y}${unit}`;
+  node.style.width = `${relative ? stock.labelWidth / stock.width * 100 : stock.labelWidth}${unit}`;
+  node.style.height = `${relative ? stock.labelHeight / stock.height * 100 : stock.labelHeight}${unit}`;
+}
+
+function updateInkjetPreview(focusSlot) {
+  const job = inkjetJob;
+  const { stock, positions, used } = job;
+  const mode = inkjet.modes.querySelector(":checked").value;
+  inkjet.numbering.hidden = mode !== "sequence";
+  let plan;
+  let message = "";
+  try {
+    plan = inkjetPlan();
+    if (!plan.pages.length) message = "Choose an available position to print.";
+  } catch (error) {
+    message = error.message;
+  }
+  const count = plan?.pages.length || 1;
+  job.page = Math.min(job.page, count - 1);
+  const bySlot = new Map(plan?.pages[job.page]?.map(position => [position.slot, position.raster]));
+  const marking = inkjet["mark-used"].checked;
+  inkjet["mark-option"].hidden = job.page !== 0;
+  inkjet["position-help"].textContent = job.page !== 0 ? "Additional sheets use fresh stock."
+    : marking ? "Select positions to mark them as used or available."
+    : mode === "single" ? "Select where the label should print."
+    : "Mark positions as used to skip them on the first sheet.";
+  inkjet.page.style.aspectRatio = `${stock.width} / ${stock.height}`;
+  const slots = positions.map((position, slot) => {
+    const button = document.createElement("button");
+    const isUsed = job.page === 0 && used.has(slot);
+    const raster = bySlot.get(slot);
+    button.type = "button";
+    button.className = "inkjet-slot";
+    button.disabled = job.busy || job.page !== 0 || (!marking && (mode !== "single" || isUsed));
+    button.setAttribute("aria-label", `Position ${slot + 1}${isUsed ? ", used" : raster !== undefined ? ", prints" : ", blank"}`);
+    button.dataset.state = isUsed ? "used" : raster !== undefined ? "print" : "blank";
+    if (marking && job.page === 0) button.setAttribute("aria-pressed", String(isUsed));
+    else if (mode === "single") button.setAttribute("aria-pressed", String(raster !== undefined));
+    positionInkjetLabel(button, stock, position, "%");
+    if (raster !== undefined) {
+      const canvas = document.createElement("canvas");
+      canvas.width = Math.round(stock.labelWidth * 4);
+      canvas.height = Math.round(stock.labelHeight * 4);
+      drawLabel(canvas.getContext("2d"), plan.designAt(raster), canvas.width, canvas.height, job.images);
+      button.append(canvas);
+    } else {
+      button.textContent = isUsed ? "Used" : slot + 1;
+    }
+    button.onclick = () => {
+      if (marking) {
+        if (!used.delete(slot)) used.add(slot);
+        if (used.has(job.selected)) job.selected = positions.findIndex((_, index) => !used.has(index));
+        else if (job.selected < 0) job.selected = slot;
+      } else job.selected = slot;
+      updateInkjetPreview(slot);
+    };
+    return button;
+  });
+  inkjet.page.replaceChildren(...slots);
+  if (focusSlot !== undefined) slots[focusSlot]?.focus();
+  inkjet.prev.disabled = job.busy || job.page === 0;
+  inkjet.next.disabled = job.busy || job.page >= count - 1;
+  inkjet["page-count"].textContent = `Sheet ${job.page + 1} of ${count}`;
+  inkjet.export.disabled = inkjet.print.disabled = job.busy || Boolean(message);
+  inkjet.dialog.querySelector('form[method="dialog"] button').disabled = job.busy;
+  inkjet.status.textContent = job.busy ? "Preparing sheets…" : message;
+}
+
+inkjet.open.onclick = openInkjetSheet;
+inkjet.dialog.oncancel = event => { if (inkjetJob.busy) event.preventDefault(); };
+inkjet.modes.onchange = () => { inkjetJob.page = 0; updateInkjetPreview(); };
+inkjet.field.onchange = () => {
+  inkjet.start.value = inkjetJob.fields[inkjet.field.selectedIndex].digits;
+  updateInkjetPreview();
+};
+for (const name of ["start", "step", "quantity", "mark-used"]) inkjet[name].oninput = () => updateInkjetPreview();
+inkjet.prev.onclick = () => { inkjetJob.page--; updateInkjetPreview(); };
+inkjet.next.onclick = () => { inkjetJob.page++; updateInkjetPreview(); };
+
+async function outputInkjetSheet(print) {
+  const job = inkjetJob;
+  if (job.busy) return;
+  const images = [];
+  let status = "";
+  try {
+    const { pages, designAt } = inkjetPlan();
+    if (!pages.length) return;
+    job.busy = true;
+    updateInkjetPreview();
+    const { stock } = job;
+    const rasters = [];
+    let width, height;
+    const rasterCount = Math.max(...pages.flat().map(position => position.raster)) + 1;
+    for (let index = 0; index < rasterCount; index++) {
+      const design = designAt(index);
+      const canvas = await renderOutput(design);
+      ({ width, height } = canvas);
+      if (print) images.push(URL.createObjectURL(await canvas.convertToBlob()));
+      else rasters.push(await compressPdfRaster(canvas, design, true));
+    }
+    if (print) await printInkjetPages(stock, pages, images);
+    else {
+      const pdf = makeSheetPdf(rasters, width, height, stock.labelWidth, stock.labelHeight, { ...stock, pages, color: true });
+      const saved = await saveExport(`Avery-${stock.id}-sheet.pdf`, pdf);
+      status = saved ? "Sheet PDF exported." : "PDF export cancelled.";
+    }
+  } catch (error) {
+    status = error.message ?? String(error);
+  } finally {
+    images.forEach(url => URL.revokeObjectURL(url));
+    job.busy = false;
+    if (job === inkjetJob && inkjet.dialog.open) {
+      updateInkjetPreview();
+      if (status) inkjet.status.textContent = status;
+    }
+  }
+}
+
+async function printInkjetPages(stock, pages, urls) {
+  const container = inkjet["print-pages"];
+  const sections = pages.map(positions => {
+    const section = document.createElement("section");
+    section.style.width = `${stock.width}mm`;
+    section.style.height = `${stock.height}mm`;
+    for (const position of positions) {
+      const img = new Image();
+      img.src = urls[position.raster];
+      positionInkjetLabel(img, stock, position, "mm");
+      section.append(img);
+    }
+    return section;
+  });
+  try {
+    container.replaceChildren(...sections);
+    await Promise.all([...container.querySelectorAll("img")].map(img => img.decode()));
+    document.body.classList.add("printing-inkjet");
+    await new Promise((resolve, reject) => {
+      const cleanup = () => {
+        clearTimeout(timer);
+        window.removeEventListener("beforeprint", started);
+        window.removeEventListener("afterprint", finished);
+      };
+      const started = () => clearTimeout(timer);
+      const finished = () => { cleanup(); resolve(); };
+      const timer = setTimeout(() => {
+        cleanup();
+        reject(new Error("The print dialog did not open. Export the PDF and print it at Actual size."));
+      }, 2000);
+      window.addEventListener("beforeprint", started, { once: true });
+      window.addEventListener("afterprint", finished, { once: true });
+      try { window.print(); }
+      catch (error) { cleanup(); reject(error); }
+    });
+  } finally {
+    document.body.classList.remove("printing-inkjet");
+    container.replaceChildren();
+  }
+}
+
+inkjet.export.onclick = () => outputInkjetSheet(false);
+inkjet.print.onclick = () => outputInkjetSheet(true);
+
 async function exportPdf() {
+  if (label.media === "inkjet") return openInkjetSheet();
   if (controls.export.disabled) return;
   finishInlineText(true);
   controls.export.disabled = true;
@@ -2176,16 +2472,8 @@ async function exportPdf() {
     if (design.media === "sheet" && !sheetForm.reportValidity()) return;
     const sheet = design.media === "sheet" ? sheetSettings(design) : undefined;
     const canvas = await renderOutput(design);
-    const { width, height } = canvas;
-    const { data } = finishPrintRaster(canvas, design, { x: 0, y: 0 }, "driver");
-    const grayscale = new Uint8Array(width * height);
-    for (let pixel = 0; pixel < grayscale.length; pixel++) {
-      const channel = pixel * 4;
-      grayscale[pixel] = Math.round(0.2126 * data[channel] + 0.7152 * data[channel + 1] + 0.0722 * data[channel + 2]);
-    }
-    const stream = new Blob([grayscale]).stream().pipeThrough(new CompressionStream("deflate"));
-    const compressed = new Uint8Array(await new Response(stream).arrayBuffer());
-    const pdf = makePdf(compressed, width, height, design.width, design.height, sheet);
+    const compressed = await compressPdfRaster(canvas, design);
+    const pdf = makePdf(compressed, canvas.width, canvas.height, design.width, design.height, sheet);
     const saved = await saveExport(sheet ? "label-sheet.pdf" : "label.pdf", pdf);
     controls.status.textContent = saved ? "PDF exported." : "PDF export cancelled.";
   } catch (error) {
@@ -2222,10 +2510,39 @@ if (platform === "linux") {
   }
 }
 const creditsDialog = document.querySelector("#credits-dialog");
+const aboutDialog = document.querySelector("#about-dialog");
+const helpMenu = document.querySelector("#help-menu");
+document.querySelector("#about-file-version").textContent = `Version ${designFileVersion}`;
+document.querySelector("#open-about").onclick = async () => {
+  const version = document.querySelector("#about-version");
+  aboutDialog.showModal();
+  helpMenu.open = false;
+  try {
+    const response = await fetch("./app-info.json");
+    if (!response.ok) throw new Error("Version metadata unavailable");
+    const appInfo = await response.json();
+    version.textContent = appInfo.version ?? "Unavailable";
+  } catch {
+    version.textContent = "Unavailable";
+  }
+};
 document.querySelector("#open-source-credits").onclick = () => {
   document.querySelector("#credits-status").textContent = "";
   creditsDialog.showModal();
+  helpMenu.open = false;
 };
+helpMenu.querySelectorAll("a[data-project]").forEach(link => {
+  link.addEventListener("click", async event => {
+    if (!invoke) return;
+    event.preventDefault();
+    try {
+      await invoke("open_project_documentation", { project: link.dataset.project });
+      helpMenu.open = false;
+    } catch (error) {
+      controls.status.textContent = String(error);
+    }
+  });
+});
 if (invoke) {
   creditsDialog.addEventListener("click", async event => {
     const link = event.target.closest("a[data-project]");
@@ -2345,6 +2662,11 @@ function refreshPrintSetups() {
 }
 
 function updatePrintTarget() {
+  if (label.media === "inkjet") {
+    controls.print.disabled = false;
+    printTarget.textContent = `${activeInkjetStock().name} · ${activeInkjetStock().paper}`;
+    return;
+  }
   const stock = controls.preset.value === "custom"
     ? `${label.width} × ${label.height} mm`
     : controls.preset.selectedOptions[0].textContent;
@@ -2854,6 +3176,10 @@ function paintPrintPreview(canvas, frame, design) {
 }
 
 async function printLabel(calibration = false) {
+  if (label.media === "inkjet") {
+    if (!calibration) openInkjetSheet();
+    return;
+  }
   if (label.media === "sheet") {
     if (!calibration) return exportPdf();
     controls.status.textContent = "Export a sheet PDF and print at Actual size to check alignment.";
@@ -3028,6 +3354,7 @@ const proofCanvas = document.querySelector("#print-proof-canvas");
 let proofRequest = 0;
 proofSend.hidden = !invoke;
 document.querySelector("#print-proof-open").onclick = async () => {
+  if (label.media === "inkjet") return openInkjetSheet();
   finishInlineText(true);
   const version = ++proofRequest;
   const design = structuredClone(currentDesign());

@@ -257,6 +257,14 @@ export function sheetLayout(label, paper, left, top, gapX, gapY, copies) {
 }
 
 export function makePdf(grayscale, pixelWidth, pixelHeight, widthMm, heightMm, sheet) {
+  return makeSheetPdf([grayscale], pixelWidth, pixelHeight, widthMm, heightMm, {
+    width: sheet?.width ?? widthMm,
+    height: sheet?.height ?? heightMm,
+    pages: [sheet?.positions ?? [{ x: 0, y: 0 }]]
+  });
+}
+
+export function makeSheetPdf(rasters, pixelWidth, pixelHeight, widthMm, heightMm, sheet) {
   const encoder = new TextEncoder();
   const parts = [];
   const offsets = [0];
@@ -274,18 +282,26 @@ export function makePdf(grayscale, pixelWidth, pixelHeight, widthMm, heightMm, s
     append("\nendobj\n");
   }
   const points = mm => (mm * 72 / millimetresPerInch).toFixed(5);
-  const width = points(sheet?.width ?? widthMm);
-  const pageHeight = sheet?.height ?? heightMm;
+  const width = points(sheet.width);
+  const pageHeight = sheet.height;
   const height = points(pageHeight);
-  const positions = sheet?.positions ?? [{ x: 0, y: 0 }];
-  const commands = positions.map(({ x, y }) =>
-    `q\n${points(widthMm)} 0 0 ${points(heightMm)} ${points(x)} ${points(pageHeight - y - heightMm)} cm\n/Label Do\nQ\n`).join("");
   append("%PDF-1.4\n");
-  object("<< /Type /Catalog /Pages 2 0 R >>");
-  object("<< /Type /Pages /Kids [3 0 R] /Count 1 >>");
-  object(`<< /Type /Page /Parent 2 0 R /MediaBox [0 0 ${width} ${height}] /Resources << /XObject << /Label 4 0 R >> >> /Contents 5 0 R >>`);
-  object(`<< /Type /XObject /Subtype /Image /Width ${pixelWidth} /Height ${pixelHeight} /ColorSpace /DeviceGray /BitsPerComponent 8 /Filter /FlateDecode /Length ${grayscale.length} >>\nstream\n`, grayscale, "\nendstream");
-  object(`<< /Length ${commands.length} >>\nstream\n${commands}endstream`);
+  object("<< /Type /Catalog /Pages 2 0 R /ViewerPreferences << /PrintScaling /None >> >>");
+  const firstPage = 3 + rasters.length;
+  const kids = sheet.pages.map((_, index) => `${firstPage + index * 2} 0 R`).join(" ");
+  object(`<< /Type /Pages /Kids [${kids}] /Count ${sheet.pages.length} >>`);
+  for (const raster of rasters) {
+    object(`<< /Type /XObject /Subtype /Image /Width ${pixelWidth} /Height ${pixelHeight} /ColorSpace ${sheet.color ? "/DeviceRGB" : "/DeviceGray"} /BitsPerComponent 8 /Filter /FlateDecode /Length ${raster.length} >>\nstream\n`, raster, "\nendstream");
+  }
+  for (const positions of sheet.pages) {
+    const images = [...new Set(positions.map(position => position.raster ?? 0))]
+      .map(index => `/Label${index} ${3 + index} 0 R`).join(" ");
+    const commands = positions.map(({ x, y, raster = 0 }) =>
+      `q\n${points(widthMm)} 0 0 ${points(heightMm)} ${points(x)} ${points(pageHeight - y - heightMm)} cm\n/Label${raster} Do\nQ\n`).join("");
+    const contents = offsets.length + 1;
+    object(`<< /Type /Page /Parent 2 0 R /MediaBox [0 0 ${width} ${height}] /Resources << /XObject << ${images} >> >> /Contents ${contents} 0 R >>`);
+    object(`<< /Length ${commands.length} >>\nstream\n${commands}endstream`);
+  }
   const xref = length;
   append(`xref\n0 ${offsets.length}\n0000000000 65535 f \n`);
   for (const offset of offsets.slice(1)) {

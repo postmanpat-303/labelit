@@ -4,13 +4,13 @@ Design, proof, and print labels at actual size. Use Label-IT for a single barcod
 
 [![Frontend checks](https://github.com/postmanpat-303/labelit/actions/workflows/frontend-checks.yml/badge.svg?branch=main)](https://github.com/postmanpat-303/labelit/actions/workflows/frontend-checks.yml)
 
-[**Download Label-IT 0.1.4**](https://github.com/postmanpat-303/labelit/releases/latest) · [Screenshots](#screenshots) · [Design-to-print workflow](#from-design-to-print) · [Browser and LAN setup](#open-in-a-browser) · [Give feedback](https://github.com/postmanpat-303/labelit/discussions/2) · [Report an issue](https://github.com/postmanpat-303/labelit/issues/new)
+[**Download Label-IT 0.1.5**](https://github.com/postmanpat-303/labelit/releases/latest) · [Screenshots](#screenshots) · [Design-to-print workflow](#from-design-to-print) · [Browser and LAN setup](#open-in-a-browser) · [Give feedback](https://github.com/postmanpat-303/labelit/discussions/2) · [Report an issue](https://github.com/postmanpat-303/labelit/issues/new)
 
 | Platform | Downloads | Setup |
 | --- | --- | --- |
-| Windows x64 | [Setup installer](https://github.com/postmanpat-303/labelit/releases/download/v0.1.4-preview/Label-IT-0.1.4-windows-x64-setup.exe) | [Windows instructions](#install-on-windows) |
-| Linux x86-64 | [Debian package](https://github.com/postmanpat-303/labelit/releases/download/v0.1.4-preview/label-it_0.1.4_amd64.deb) · [Portable archive](https://github.com/postmanpat-303/labelit/releases/download/v0.1.4-preview/Label-IT-0.1.4-linux-x86_64.tar.gz) | [Linux instructions](#install-on-linux) |
-| macOS · Apple silicon and Intel | [Universal DMG](https://github.com/postmanpat-303/labelit/releases/download/v0.1.4-preview/Label-IT-0.1.4-macOS-universal.dmg) | [macOS instructions](#install-on-macos) |
+| Windows x64 | [Setup installer](https://github.com/postmanpat-303/labelit/releases/download/v0.1.5/Label-IT-0.1.5-windows-x64-setup.exe) | [Windows instructions](#install-on-windows) |
+| Linux x86-64 | [Debian package](https://github.com/postmanpat-303/labelit/releases/download/v0.1.5/label-it_0.1.5_amd64.deb) · [Portable archive](https://github.com/postmanpat-303/labelit/releases/download/v0.1.5/Label-IT-0.1.5-linux-x86_64.tar.gz) | [Linux instructions](#install-on-linux) |
+| macOS · Apple silicon and Intel | [Universal DMG](https://github.com/postmanpat-303/labelit/releases/download/v0.1.5/Label-IT-0.1.5-macOS-universal.dmg) | [macOS instructions](#install-on-macos) |
 
 ## Screenshots
 
@@ -69,9 +69,13 @@ A full-label gradient on rounded 50 × 30 mm stock shows the stock, printer, and
 4. **Choose the output.** Send a job to a supported Windows printer, export an actual-size PDF for sheet printing, or map CSV columns to text and barcodes for a batch.
 5. **Save and reuse.** Name the design, keep it in the local library, or export an editable copy. Back up the library when moving between devices or browser profiles.
 
+### Print Avery A4 sheets
+
+In **Label stock → Media → Avery A4 labels**, search by code or dimensions and open **Sheet print**. Choose one position, fill the sheet, or number labels across sheets. Mark used positions to skip them, then print or export a colour PDF. Label-IT remembers frequently used stock.
+
 ## Install on Windows
 
-Run the **Windows x64 setup executable** on Windows 10 or later. The installer checks for Microsoft Edge WebView2 and adds Label-IT to the Start menu. Select **Run Label-IT now** at the end of setup to open it maximised. The current preview installer is unsigned. Windows 10 is a compatibility target and still needs a clean-install test.
+Run the **Windows x64 setup executable** on Windows 10 or later. The installer checks for Microsoft Edge WebView2 and adds Label-IT to the Start menu. Select **Run Label-IT now** at the end of setup to open it maximised. The current installer is unsigned. Windows 10 is a compatibility target and still needs a clean-install test.
 
 ## Install on Linux
 
@@ -79,7 +83,7 @@ Choose the package matching your distribution and processor:
 
 | Distribution | Easiest install |
 | --- | --- |
-| Ubuntu | Open the `.deb` in your software installer, or run `sudo apt install ./label-it_0.1.4_amd64.deb` from the download folder. |
+| Ubuntu | Open the `.deb` in your software installer, or run `sudo apt install ./label-it_0.1.5_amd64.deb` from the download folder. |
 | Fedora | Extract the x86-64 portable archive and run `sh install.sh`. |
 | Arch and other desktops | Extract the x86-64 archive and run `sh install.sh` inside it as your regular user. The installer adds a launcher for your account. |
 
@@ -111,9 +115,9 @@ The container builds the Debian package and per-user archive. The copy command p
 
 ## Install on macOS
 
-Download **Label-IT-0.1.4-macOS-universal.dmg** from the [0.1.4 release](https://github.com/postmanpat-303/labelit/releases/tag/v0.1.4-preview). Open the disk image and drag Label-IT into Applications. The app contains both Apple silicon and Intel binaries.
+Download **Label-IT-0.1.5-macOS-universal.dmg** from the [0.1.5 release](https://github.com/postmanpat-303/labelit/releases/tag/v0.1.5). Open the disk image and drag Label-IT into Applications. The app contains both Apple silicon and Intel binaries.
 
-This preview uses ad-hoc signing. It has no Apple Developer ID signature or notarization, so macOS may block it under its security settings. GitHub Actions verified both architectures. A native installation and print test are pending. To print from this preview, export an exact-size PDF and choose **Actual Size** in the macOS print dialog.
+The DMG uses ad-hoc signing. It has no Apple Developer ID signature or notarization, so macOS may block it under its security settings. GitHub Actions verified both architectures. A native installation and print test are pending. To print on macOS, export an exact-size PDF and choose **Actual Size** in the macOS print dialog.
 
 ## Windows desktop app
 
@@ -168,7 +172,7 @@ $env:Path = "$env:USERPROFILE\tools\w64devkit\w64devkit\bin;$env:Path"
 
 ## Technology
 
-Label-IT uses Tauri 2 and Rust for the desktop app, with HTML, CSS, JavaScript modules, and Canvas for the editor. The frontend build uses Node.js. GitHub Actions checks the frontend on pushes and pull requests and builds the universal macOS preview on demand.
+Label-IT uses Tauri 2 and Rust for the desktop app, with HTML, CSS, JavaScript modules, and Canvas for the editor. The frontend build uses Node.js. GitHub Actions checks the frontend on pushes and pull requests and builds the Windows, Linux, and universal macOS packages for stable releases.
 
 ## Open in a browser
 

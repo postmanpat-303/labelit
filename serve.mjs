@@ -12,6 +12,7 @@ const assets = new Map([
   ["/src/print-history.mjs", ["src/print-history.mjs", "text/javascript"]],
   ["/src/print-raster.mjs", ["src/print-raster.mjs", "text/javascript"]],
   ["/src/glabels-import.mjs", ["src/glabels-import.mjs", "text/javascript"]],
+  ["/src/inkjet-sheets.mjs", ["src/inkjet-sheets.mjs", "text/javascript"]],
   ["/src/thermal-printers.mjs", ["src/thermal-printers.mjs", "text/javascript"]],
   ...["glabels/introduction-glabels-main-window.png", "glabels/print-merge.png", "label-it/thermal-raster-test.png", "label-it/printer-welcome.png"]
     .map(image => [`/references/${image}`, [`references/${image}`, "image/png"]]),
@@ -23,6 +24,17 @@ const host = process.argv.includes("--lan") ? "0.0.0.0" : "127.0.0.1";
 const port = Number(process.argv.slice(2).find(argument => argument !== "--lan") ?? 4173);
 if (!Number.isInteger(port) || port < 1 || port > 65535) throw new Error("Choose a port from 1 to 65535.");
 const server = createServer(async (request, response) => {
+  if (request.url === "/app-info.json") {
+    try {
+      const config = await readFile(new URL("./src-tauri/tauri.conf.json", import.meta.url), "utf8");
+      const { version } = JSON.parse(config);
+      response.writeHead(200, { "Content-Type": "application/json; charset=utf-8", "Cache-Control": "no-store" });
+      response.end(JSON.stringify({ version }));
+    } catch {
+      response.writeHead(500).end();
+    }
+    return;
+  }
   const asset = assets.get(request.url);
   if (!asset) {
     response.writeHead(404).end();
