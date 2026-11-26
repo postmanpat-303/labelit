@@ -1,10 +1,10 @@
 # Label-IT
 
-Design labels, barcodes, and business cards at actual size on Windows, Linux, and macOS. Open designs side by side, set up thermal stock, or export a ready-to-print sheet.
+Design, proof, and print labels at actual size. Use Label-IT for a single barcode, a sheet of address labels, or a batch of records. Open it from your desktop launcher or run the browser editor on your local network.
 
 [![Frontend checks](https://github.com/postmanpat-303/labelit/actions/workflows/frontend-checks.yml/badge.svg?branch=main)](https://github.com/postmanpat-303/labelit/actions/workflows/frontend-checks.yml)
 
-[**Download Label-IT 0.1.4**](https://github.com/postmanpat-303/labelit/releases/latest) · [Screenshots](#screenshots) · [Compare with gLabels](#label-it-vs-glabels) · [Give feedback](https://github.com/postmanpat-303/labelit/discussions/2) · [Report an issue](https://github.com/postmanpat-303/labelit/issues/new)
+[**Download Label-IT 0.1.4**](https://github.com/postmanpat-303/labelit/releases/latest) · [Screenshots](#screenshots) · [Design-to-print workflow](#from-design-to-print) · [Browser and LAN setup](#open-in-a-browser) · [Give feedback](https://github.com/postmanpat-303/labelit/discussions/2) · [Report an issue](https://github.com/postmanpat-303/labelit/issues/new)
 
 | Platform | Downloads | Setup |
 | --- | --- | --- |
@@ -61,45 +61,13 @@ A full-label gradient on rounded 50 × 30 mm stock shows the stock, printer, and
 
 </details>
 
-## Designed for everyday use
+## From design to print
 
-Open several designs in tabs and select **Split view** to see two side by side. Click either pane to activate its design. Each open design keeps its own zoom, canvas position, and undo history during the session. Drag the dotted background to move the label view, or use **Center label** to reset it. [Label-IT 0.1.4](https://github.com/postmanpat-303/labelit/releases/tag/v0.1.4-preview)
-
-1. **Choose your printer and stock.** First-run setup helps you pick an installed printer. The stock list can filter sizes against known printer limits, and you can enter custom dimensions in millimetres.
-2. **Design right on the label.** Add text, artwork, or a barcode. New text opens the Font and Size controls first. Use the corner handles to resize elements, or right-click to open the PIE menu. When the PIE menu opens a sidebar card, the card briefly highlights.
-3. **Check alignment and print.** Preview the output before using a label. Where direct printing is supported, the calibration controls let you adjust position in 0.1 mm steps and remember the offsets for that printer and stock.
-4. **Reuse what you’ve made.** Keep designs in the local library, import compatible gLabels designs, or map CSV columns for batches on supported Windows printer setups.
-
-The Linux preview exports exact-size PDFs for printing through the system print dialog. See [GitHub Releases](https://github.com/postmanpat-303/labelit/releases) for installers and platform notes.
-
-The [Label-IT and gLabels comparison](https://github.com/postmanpat-303/labelit/blob/main/docs/label-app-bugs.svg) shows examples of the issues and print workflows that informed the early builds.
-
-## Label-IT vs. gLabels
-
-Both apps support text, images, barcodes, custom sizes, business cards, sheet labels, and continuous rolls. The comparison below covers the public **Label-IT 0.1.4** and the **gLabels 4 Qt development version**. Feature availability and print workflows vary by platform and printer.
-
-| Workflow | Label-IT | gLabels 4 |
-| --- | --- | --- |
-| Sheet labels and business cards | Actual-size A4 or US Letter PDF with adjustable margins, gaps, and copies | Built-in stock templates for commercial label and card sheets, plus custom templates |
-| Data-driven labels | CSV field mapping and batch printing on supported Windows printer setups | Document merge from CSV and user-defined variables for numbering and other repeatable values |
-| Continuous-roll stock | Design height sets the print length. The printer driver handles sensing and cutting. | Continuous-roll label support |
-| Thermal printer setup | Printer-aware stock filtering, live calibration preview, saved offsets, and thermal raster preview on supported setups | Equivalent guided calibration features were unconfirmed in the documentation reviewed |
-| Editing several designs | Design tabs, Split view, independent undo and zoom, and canvas panning | Equivalent tabbed and split-view workflows were unconfirmed in the documentation reviewed |
-| Community feedback | Public GitHub Discussions for feedback and workflow questions | GitHub Issues for bugs and feature requests. GitHub Discussions is disabled on the Qt and legacy GTK repositories. |
-
-For commercial sheet stock and variable-driven labels, gLabels offers a template catalogue and document merge. Label-IT focuses on thermal printer alignment, actual-size PDF export, and editing designs side by side. [gLabels project](https://glabels.org/) · [gLabels 4 project](https://github.com/j-evins/glabels-qt) · [gLabels contribution guide](https://github.com/j-evins/glabels-qt/blob/master/docs/CONTRIBUTING.md) · [Label-IT releases](https://github.com/postmanpat-303/labelit/releases) · [Give Label-IT feedback](https://github.com/postmanpat-303/labelit/discussions/2)
-
-### Feature timeline
-
-As of **21 November 2026**, gLabels has about **25 years of project history** dating back to 2001. Label-IT’s **first public preview was released 20 November 2026** and its second public build followed the next day. The gLabels start year comes from the project’s source history. The Label-IT dates are GitHub publication dates.
-
-| Project | Milestone | Feature progression |
-| --- | --- | --- |
-| gLabels | 2001 · Project origins | Label and business card design for laser and inkjet printers. [GTK project](https://github.com/j-evins/glabels-gtk) |
-| gLabels | 3.x era · Legacy support ended in 2018 | Sheet stock templates, editable text, images and shapes, barcodes, and data merge for batches. [Project overview](https://glabels.org/) |
-| gLabels | 4.x · In development by December 2018 | The Qt rewrite adds cross-platform support, continuous-roll labels, user-defined variables, and more stock templates. [2018 release discussion](https://github.com/j-evins/glabels-qt/issues/43) · [Qt project](https://github.com/j-evins/glabels-qt) |
-| Label-IT | 20 November 2026 · First public preview | Actual-size design with text, images and barcodes, compatible gLabels import, and direct Windows printing tested on a Zebra ZD410. Linux printing uses exact-size PDF export. [First preview](https://github.com/postmanpat-303/labelit/releases/tag/v0.1.0-preview) |
-| Label-IT | 21 November 2026 · Linux compatibility preview | Font and Size moved to the top of text properties, the gLabels importer gained warnings for unreadable embedded images, and Debian 12-based packages lowered the Linux glibc requirement to 2.34. [Linux compatibility preview](https://github.com/postmanpat-303/labelit/releases/tag/v0.1.0-linux-compat) |
+1. **Choose stock.** Start with a preset or enter the dimensions in millimetres. Choose individual labels, a sheet layout, or continuous roll media.
+2. **Build the label.** Add text, artwork, shapes, and barcodes. Use the canvas and Properties panel for placement, or open two designs side by side in Split view.
+3. **Proof a sample.** Preview the output and check the edges, text, and barcode. On supported Windows printer setups, print a calibration sample and save offsets for that printer and stock.
+4. **Choose the output.** Send a job to a supported Windows printer, export an actual-size PDF for sheet printing, or map CSV columns to text and barcodes for a batch.
+5. **Save and reuse.** Name the design, keep it in the local library, or export an editable copy. Back up the library when moving between devices or browser profiles.
 
 ## Install on Windows
 
@@ -202,11 +170,23 @@ $env:Path = "$env:USERPROFILE\tools\w64devkit\w64devkit\bin;$env:Path"
 
 Label-IT uses Tauri 2 and Rust for the desktop app, with HTML, CSS, JavaScript modules, and Canvas for the editor. The frontend build uses Node.js. GitHub Actions checks the frontend on pushes and pull requests and builds the universal macOS preview on demand.
 
-## Browser prototype
+## Open in a browser
 
-From the Label-IT project folder, run `node serve.mjs` with Node.js 24.
+Run this from the project folder with Node.js 24, then open [Label-IT on this computer](http://127.0.0.1:4173).
 
-Keep that terminal open and visit <http://127.0.0.1:4173> in a current browser. The editor has no package installation step. Add text, choose a preset or enter dimensions in millimetres, and export a PDF at 203 or 300 dpi. The active design is saved locally in the browser.
+```sh
+node serve.mjs
+```
+
+To make the editor available to other devices on a trusted local network, start it on one computer with the command below. If the host prompts for firewall access, allow the chosen port on the private network.
+
+```sh
+node serve.mjs --lan
+```
+
+On each device, open the host computer’s LAN address on port 4173, for example `http://192.168.1.50:4173`. Bookmark the address or create a browser shortcut for one-click access. Keep the host running. This mode serves the editor over HTTP and is intended for a trusted LAN.
+
+Each browser keeps its own designs. Use **Export design** or **Back up library** to move work between devices. Print a sheet from the client’s print dialog or export an actual-size PDF. Direct Windows printer controls are available in the Windows desktop build.
 
 Use **Add image** for PNG, JPEG, or WebP files up to 10 MB. Adjust the image width in millimetres to resize it proportionally. **Add barcode** creates a Code 39 symbol. Use **Barcode format** in Properties to switch to Code 128, QR Code, or Data Matrix. Label-IT checks that a barcode fits with its quiet zone and flags undersized 2D codes for the selected output resolution. PDF output is grayscale.
 
@@ -220,26 +200,12 @@ Use **Search designs** to search by name, text, or barcode value. In the desktop
 
 **Library tools** lets you organise designs with folders and tags, reuse a design as a template, and remove designs and restore them from **Removed designs**. **Export design** produces an editable file with its artwork. **Back up library** includes designs, saved CSV lists, column mappings, and printer profiles. Restoring a backup adds its items and retains existing designs, lists, and calibration settings.
 
-Use **File → Import from gLabels** to bring a `.glabels` or `.glabel` file into your design library. Label-IT imports one label from the sheet, with editable text, supported static barcodes, and compatible embedded gLabels 4 images. Review the import notes and print preview for changes to fonts, barcodes, or skipped objects. Reconnect merge fields through **Print from CSV**.
 
 Right-click empty label space for the PIE insert menu. Each slice has a text label, and hovering or focusing it shows the full action in the centre. Right-click an element and choose **Arrange** to align it, change its layer, or lock it. Locked items can still be selected and copied. Use **Arrange → Unlock element** or the Properties panel to edit them again.
 
 Shift-click elements to select several, then use **PIE → Arrange → Group selection** to move and align them together. Use **Ungroup** to edit them separately. The canvas zoom control returns to **Fit label** with one selection, and **Text box** in Properties sets wrapping, a fit height, and the minimum font size.
 
 Press **Delete** to remove the selected element or group and **Ctrl+Z** to undo it. Delete edits characters while a text field has focus.
-
-## Open-source research
-
-| Project | Pattern for Label-IT |
-| --- | --- |
-| [NiimBlue](https://github.com/MultiMote/niimblue) | Keep hardware communication separate from the editor. Its NIIMBOT browser workflow is a reference for a future device adapter. |
-| [gLabels](https://github.com/j-evins/glabels-qt) | Model media geometry and merge fields independently so one design can serve multiple records and sheet layouts. |
-| [brother_ql](https://github.com/pklaus/brother_ql) | Use it as a Brother raster protocol reference when validating an emitter and its supported USB and network paths. |
-| [thermoprint](https://github.com/tomLadder/thermoprint) | Keep rendering reusable outside the UI so device output and other entry points can share the model. |
-
-The first implementation shares one millimetre-based renderer between preview and output. Canvas updates are coalesced to one animation frame, and full-resolution rendering is deferred until export. The PDF embeds a compressed grayscale image and uses a page size calculated directly from the label dimensions.
-
-The desktop shell uses Tauri 2. The editor uses native browser APIs and Node's standard library to stage the frontend. The Rust backend keeps raster validation and batch preparation independent of the Windows printer adapter. The adapter handles printer discovery, queue status, and submitting label pages to Windows. Code 128, QR Code, and Data Matrix use [BWIP-JS 4.11.4](https://github.com/metafloor/bwip-js) bundled locally, with its licences under `src/vendor`.
 
 ## Roadmap
 
