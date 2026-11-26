@@ -204,11 +204,7 @@ Label-IT uses Tauri 2 and Rust for the desktop app, with HTML, CSS, JavaScript m
 
 ## Browser prototype
 
-From the Label-IT project folder, run `node serve.mjs` with Node.js 24. From any folder on this Windows workspace, use the full path:
-
-```cmd
-node "C:\Users\DMAN\Documents\Codex\labelit\serve.mjs"
-```
+From the Label-IT project folder, run `node serve.mjs` with Node.js 24.
 
 Keep that terminal open and visit <http://127.0.0.1:4173> in a current browser. The editor has no package installation step. Add text, choose a preset or enter dimensions in millimetres, and export a PDF at 203 or 300 dpi. The active design is saved locally in the browser.
 
