@@ -4,13 +4,13 @@ Design labels, barcodes, and business cards at actual size on Windows, Linux, an
 
 [![Frontend checks](https://github.com/postmanpat-303/labelit/actions/workflows/frontend-checks.yml/badge.svg?branch=main)](https://github.com/postmanpat-303/labelit/actions/workflows/frontend-checks.yml)
 
-[**Download 0.1.3 Preview**](https://github.com/postmanpat-303/labelit/releases/tag/v0.1.3-preview) · [Screenshots](#screenshots) · [Compare with gLabels](#label-it-vs-glabels) · [Give feedback](https://github.com/postmanpat-303/labelit/discussions/2) · [Report an issue](https://github.com/postmanpat-303/labelit/issues/new)
+[**Download Label-IT 0.1.4**](https://github.com/postmanpat-303/labelit/releases/latest) · [Screenshots](#screenshots) · [Compare with gLabels](#label-it-vs-glabels) · [Give feedback](https://github.com/postmanpat-303/labelit/discussions/2) · [Report an issue](https://github.com/postmanpat-303/labelit/issues/new)
 
-| Platform | Preview downloads | Setup |
+| Platform | Downloads | Setup |
 | --- | --- | --- |
-| Windows x64 | [Setup installer](https://github.com/postmanpat-303/labelit/releases/download/v0.1.3-preview/Label-IT-0.1.3-windows-x64-setup.exe) | [Windows instructions](#install-on-windows) |
-| Linux x86-64 | [Debian package](https://github.com/postmanpat-303/labelit/releases/download/v0.1.3-preview/label-it_0.1.3_amd64.deb) · [AppImage](https://github.com/postmanpat-303/labelit/releases/download/v0.1.3-preview/Label-IT_0.1.3_amd64.AppImage) · [Portable archive](https://github.com/postmanpat-303/labelit/releases/download/v0.1.3-preview/Label-IT-0.1.3-linux-x86_64.tar.gz) | [Linux instructions](#install-on-linux) |
-| macOS · Apple silicon and Intel | [Universal DMG](https://github.com/postmanpat-303/labelit/releases/download/v0.1.3-preview/Label-IT-0.1.3-macOS-universal.dmg) | [macOS instructions](#install-on-macos) |
+| Windows x64 | [Setup installer](https://github.com/postmanpat-303/labelit/releases/download/v0.1.4-preview/Label-IT-0.1.4-windows-x64-setup.exe) | [Windows instructions](#install-on-windows) |
+| Linux x86-64 | [Debian package](https://github.com/postmanpat-303/labelit/releases/download/v0.1.4-preview/label-it_0.1.4_amd64.deb) · [Portable archive](https://github.com/postmanpat-303/labelit/releases/download/v0.1.4-preview/Label-IT-0.1.4-linux-x86_64.tar.gz) | [Linux instructions](#install-on-linux) |
+| macOS · Apple silicon and Intel | [Universal DMG](https://github.com/postmanpat-303/labelit/releases/download/v0.1.4-preview/Label-IT-0.1.4-macOS-universal.dmg) | [macOS instructions](#install-on-macos) |
 
 ## Screenshots
 
@@ -18,7 +18,7 @@ Design labels, barcodes, and business cards at actual size on Windows, Linux, an
 
 Open several designs in tabs and click either pane to switch which design you’re editing. Each open design keeps its own zoom, position, and undo history during the session. Drag the dotted background to reposition the view, or select **Center label** to reset it.
 
-![Label-IT Split view with a business card on the left and a barcode label on the right](docs/screenshots/split-view.png)
+![Label-IT Split view with a barcode label on the left and a business card on the right](docs/screenshots/split-view.jpg)
 
 <details>
 <summary>More screenshots of sheet labels, shapes, printer setup, and the PIE menu</summary>
@@ -27,33 +27,33 @@ Open several designs in tabs and click either pane to switch which design you’
 
 Start with a business-card preset or use your own label dimensions. Set margins and gaps for A4 or US Letter, then export an actual-size sheet PDF. This example fits eight 85 × 55 mm cards on A4.
 
-![Business-card editor and A4 sheet settings showing eight cards per sheet](docs/screenshots/card-sheet.png)
+![Business-card editor and A4 sheet settings showing eight cards per sheet](docs/screenshots/card-sheet.jpg)
 
-### Shape tools and continuous roll
+### Shape tools
 
-Add rectangles, ellipses, and lines, then resize them on the canvas or enter dimensions in millimetres. On continuous stock, the design height sets the print length. The printer driver handles media sensing and cutting.
+Use the left tool rail to add elements. Hold the rectangle icon to open ten more shapes, including stars, arrows, and polygons.
 
-![Continuous-roll label with an ellipse selected, showing shape dimensions and roll settings](docs/screenshots/roll-shapes.png)
+![Shape flyout with ten choices beside a sample barcode label](docs/screenshots/shape-tools.jpg)
 
 **Label editor**
 
 Font and size controls sit at the top of the left panel. Label stock, printer settings, and print actions are on the right.
 
-![Label-IT editor with a selected text object, font controls, and printer settings](docs/screenshots/label-editor.png)
+![Label-IT editor with a selected text object, font controls, and printer settings](docs/screenshots/label-editor.jpg)
 
 **First-run setup**
 
 Choose an installed printer or come back to setup later.
 
-![Label-IT welcome dialog showing the list of installed printers](references/label-it/printer-welcome.png)
+![Label-IT welcome dialog showing the list of installed printers](docs/screenshots/printer-welcome-014.jpg)
 
 **PIE menu**
 
 Right-click a label element to open its properties, arrange it, duplicate it, or delete it.
 
-![Label-IT PIE menu with labelled actions over the label canvas](docs/screenshots/pie-menu.png)
+![Label-IT PIE menu with labelled actions over the label canvas](docs/screenshots/pie-menu.jpg)
 
-**Thermal raster test**
+**Thermal raster reference**
 
 A full-label gradient on rounded 50 × 30 mm stock shows the stock, printer, and calibration controls together.
 
@@ -63,7 +63,7 @@ A full-label gradient on rounded 50 × 30 mm stock shows the stock, printer, and
 
 ## Designed for everyday use
 
-Open several designs in tabs and select **Split view** to see two side by side. Click either pane to activate its design. Each open design keeps its own zoom, canvas position, and undo history during the session. Drag the dotted background to move the label view, or use **Center label** to reset it. [Label-IT 0.1.3 Preview](https://github.com/postmanpat-303/labelit/releases/tag/v0.1.3-preview)
+Open several designs in tabs and select **Split view** to see two side by side. Click either pane to activate its design. Each open design keeps its own zoom, canvas position, and undo history during the session. Drag the dotted background to move the label view, or use **Center label** to reset it. [Label-IT 0.1.4](https://github.com/postmanpat-303/labelit/releases/tag/v0.1.4-preview)
 
 1. **Choose your printer and stock.** First-run setup helps you pick an installed printer. The stock list can filter sizes against known printer limits, and you can enter custom dimensions in millimetres.
 2. **Design right on the label.** Add text, artwork, or a barcode. New text opens the Font and Size controls first. Use the corner handles to resize elements, or right-click to open the PIE menu. When the PIE menu opens a sidebar card, the card briefly highlights.
@@ -76,7 +76,7 @@ The [Label-IT and gLabels comparison](https://github.com/postmanpat-303/labelit/
 
 ## Label-IT vs. gLabels
 
-Both apps support text, images, barcodes, custom sizes, business cards, sheet labels, and continuous rolls. The comparison below covers the public **Label-IT 0.1.3 Preview** and the **gLabels 4 Qt development version**. Feature availability and print workflows vary by platform and printer.
+Both apps support text, images, barcodes, custom sizes, business cards, sheet labels, and continuous rolls. The comparison below covers the public **Label-IT 0.1.4** and the **gLabels 4 Qt development version**. Feature availability and print workflows vary by platform and printer.
 
 | Workflow | Label-IT | gLabels 4 |
 | --- | --- | --- |
@@ -111,8 +111,8 @@ Choose the package matching your distribution and processor:
 
 | Distribution | Easiest install |
 | --- | --- |
-| Ubuntu | Open the `.deb` in your software installer, or run `sudo apt install ./label-it_0.1.3_amd64.deb` from the download folder. |
-| Fedora | Use the x86-64 AppImage for this preview. |
+| Ubuntu | Open the `.deb` in your software installer, or run `sudo apt install ./label-it_0.1.4_amd64.deb` from the download folder. |
+| Fedora | Extract the x86-64 portable archive and run `sh install.sh`. |
 | Arch and other desktops | Extract the x86-64 archive and run `sh install.sh` inside it as your regular user. The installer adds a launcher for your account. |
 
 The Linux x86-64 build targets Debian 12 and glibc 2.34 or newer. The Debian package requires GTK 3 and WebKitGTK 4.1.
@@ -143,7 +143,7 @@ The container builds the Debian package and per-user archive. The copy command p
 
 ## Install on macOS
 
-Download **Label-IT-0.1.3-macOS-universal.dmg** from the [0.1.3 preview release](https://github.com/postmanpat-303/labelit/releases/tag/v0.1.3-preview). Open the disk image and drag Label-IT into Applications. The app contains both Apple silicon and Intel binaries.
+Download **Label-IT-0.1.4-macOS-universal.dmg** from the [0.1.4 release](https://github.com/postmanpat-303/labelit/releases/tag/v0.1.4-preview). Open the disk image and drag Label-IT into Applications. The app contains both Apple silicon and Intel binaries.
 
 This preview uses ad-hoc signing. It has no Apple Developer ID signature or notarization, so macOS may block it under its security settings. GitHub Actions verified both architectures. A native installation and print test are pending. To print from this preview, export an exact-size PDF and choose **Actual Size** in the macOS print dialog.
 
@@ -186,7 +186,7 @@ Use **Printer and stock setups** to save or switch combinations in one place. **
 
 Set **Corner radius (mm)** in **Label stock** to match rounded stock, or use 0 for square corners. Label-IT masks artwork outside the curve in the print raster and PDF. **Print tone** defaults to black-and-white thermal dots for Zebra queues and driver-managed colour for other printers. Preview, direct print, and CSV jobs share the same raster processing. Physical tone and alignment still depend on printhead settings, stock, and calibration.
 
-Choose **ALIEXPRESS THERMAL 50x30** for the stock tested on the Zebra ZD410. The labels are 50 mm wide by 30 mm along the feed, with an approximately 6 mm gap. The leading edges are about 36 mm apart.
+Choose **50 × 30 mm** for the stock tested on the Zebra ZD410. The labels are 50 mm wide by 30 mm along the feed, with an approximately 6 mm gap. The leading edges are about 36 mm apart.
 
 On the tested ZD410 at 203 dpi, a feed offset of +3.6 mm and a sideways offset of +0.65 mm centred the calibration print. Two consecutive calibration labels showed no visible feed drift, and the Code 39 test label scanned successfully as `LT12`.
 
@@ -218,11 +218,11 @@ For a photo, **Fit image to print area** leaves a safety margin. **Use full prin
 
 In **Properties**, use **Align to label** to place a selected element against an edge or centre it. Label-IT warns when a barcode or its required blank margins extend past the label. For direct printing it also checks whether your printer offsets would clip the barcode.
 
-In the left panel, click a thumbnail under **Designs** to open a saved label. Use **New design** for a blank label, **Duplicate** to start from a copy, or **Design name** to rename it. Changes save automatically in this browser. Switch to **Properties** to edit the selected element.
+In the left panel, click a thumbnail under **Library** to open a saved label. Use **New design** for a blank label, **Duplicate** to start from a copy, or **Design name** to rename it. Changes save automatically in this browser. Switch to **Properties** to edit the selected element.
 
-Use **Find designs** to search by name, text, or barcode value. In the desktop app, **Ctrl+F** opens the search field. Mark the current design as a **Favourite** to keep it at the top, or use **Favourites only** to hide other designs.
+Use **Search designs** to search by name, text, or barcode value. In the desktop app, **Ctrl+F** opens the search field. Mark the current design as a **Favourite** to keep it at the top, or use **Favourites only** to hide other designs.
 
-**Library tools** lets you organise designs with folders and tags, reuse a design as a template, and move designs to the recoverable trash. **Export design** produces an editable file with its artwork. **Back up library** includes designs, saved CSV lists, column mappings, and printer profiles. Restoring a backup adds its items and retains existing designs, lists, and calibration settings.
+**Library tools** lets you organise designs with folders and tags, reuse a design as a template, and remove designs and restore them from **Removed designs**. **Export design** produces an editable file with its artwork. **Back up library** includes designs, saved CSV lists, column mappings, and printer profiles. Restoring a backup adds its items and retains existing designs, lists, and calibration settings.
 
 Use **File → Import from gLabels** to bring a `.glabels` or `.glabel` file into your design library. Label-IT imports one label from the sheet, with editable text, supported static barcodes, and compatible embedded gLabels 4 images. Review the import notes and print preview for changes to fonts, barcodes, or skipped objects. Reconnect merge fields through **Print from CSV**.
 
