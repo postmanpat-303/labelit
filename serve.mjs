@@ -19,8 +19,9 @@ const assets = new Map([
   ["/src/vendor/bwipp.mjs", ["src/vendor/bwipp.mjs", "text/javascript"]]
 ]);
 
-const host = "127.0.0.1";
-const port = 4173;
+const host = process.argv.includes("--lan") ? "0.0.0.0" : "127.0.0.1";
+const port = Number(process.argv.slice(2).find(argument => argument !== "--lan") ?? 4173);
+if (!Number.isInteger(port) || port < 1 || port > 65535) throw new Error("Choose a port from 1 to 65535.");
 const server = createServer(async (request, response) => {
   const asset = assets.get(request.url);
   if (!asset) {
@@ -37,7 +38,7 @@ const server = createServer(async (request, response) => {
 
 server.on("error", error => {
   if (error.code === "EADDRINUSE") {
-    console.error(`Port ${port} is already in use. If Label-IT is open at http://${host}:${port}, use that window. To restart Label-IT, press Ctrl+C in the terminal running it first.`);
+    console.error(`Port ${port} is already in use. To start another instance, run node serve.mjs with a different port.`);
   } else {
     console.error(`Could not start Label-IT. ${error.message}`);
   }
@@ -45,6 +46,7 @@ server.on("error", error => {
 });
 
 server.listen(port, host, () => {
-  console.log(`Label-IT is available at http://${host}:${port}`);
+  console.log(`Label-IT is available at http://127.0.0.1:${port}`);
+  if (host === "0.0.0.0") console.log(`On your local network, open http://<host-ip>:${port}.`);
 });
 
